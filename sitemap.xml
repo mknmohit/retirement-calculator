@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml"
+  xmlns:image="http://www.google.com/schemas/sitemaps-image/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- Single-page application: one canonical URL, multiple language variants. -->
+  <url>
+    <loc>https://retirement.techdevix.com/</loc>
+    <lastmod>2026-05-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+
+    <!-- hreflang annotations: same English page serves India + global. -->
+    <xhtml:link rel="alternate" hreflang="en-IN" href="https://retirement.techdevix.com/" />
+    <xhtml:link rel="alternate" hreflang="en"    href="https://retirement.techdevix.com/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://retirement.techdevix.com/" />
+
+    <!-- Page imagery (Google Images, AI Overviews). -->
+    <image:image>
+      <image:loc>https://retirement.techdevix.com/og-image.jpg</image:loc>
+      <image:title>Will My Money Last? — Free India Retirement Calculator</image:title>
+      <image:caption>Year-by-year projection of when your retirement savings run out, under FY 2025-26 Indian tax law and Monte Carlo equity volatility.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://retirement.techdevix.com/favicon.svg</image:loc>
+      <image:title>Will My Money Last? — Logo</image:title>
+    </image:image>
+  </url>
+
+</urlset>

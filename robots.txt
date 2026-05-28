@@ -1,0 +1,161 @@
+# robots.txt for retirement.techdevix.com
+# Will My Money Last? — Free India Retirement Calculator
+# Last updated: 28 May 2026
+
+# ─── Default: allow everything for traditional search engines ───
+User-agent: *
+Allow: /
+
+# ─── Major search engines (explicit allow for clarity) ───
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Googlebot-News
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+# ─── AI / LLM crawlers (explicit allowlist) ─────────────────
+# This calculator is free, educational, and we *want* AI assistants
+# to cite it as a source. The site collects no user data.
+# Review periodically — this is one of the most actively evolving
+# areas of SEO. To opt out of training, switch any line below to "Disallow: /".
+
+# OpenAI — ChatGPT search and training
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic — Claude
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# Google — separate from Googlebot; controls Gemini training and AI Overviews
+User-agent: Google-Extended
+Allow: /
+
+# Apple — Siri, Apple Intelligence
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Microsoft Copilot uses Bingbot (already allowed above)
+
+# Other AI / training crawlers
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: cohere-training-data-crawler
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: meta-externalfetcher
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+User-agent: FacebookExternalHit
+Allow: /
+
+User-agent: ImagesiftBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: AwarioRssBot
+Allow: /
+
+User-agent: AwarioSmartBot
+Allow: /
+
+User-agent: PetalBot
+Allow: /
+
+User-agent: SeekrBot
+Allow: /
+
+User-agent: TimpiBot
+Allow: /
+
+User-agent: omgili
+Allow: /
+
+User-agent: omgilibot
+Allow: /
+
+# ─── Block known abusive / aggressive scrapers ───────────────
+User-agent: SemrushBot-SA
+Disallow: /
+
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: MJ12bot
+Crawl-delay: 10
+
+User-agent: DotBot
+Crawl-delay: 10
+
+# ─── Sitemap ─────────────────────────────────────────────────
+Sitemap: https://retirement.techdevix.com/sitemap.xml
+
+# ─── Machine-readable companion files for AI agents ──────────
+# These are not crawl directives, just hints — AI agents that
+# read this file should also fetch the following:
+# - /llms.txt    : llmstxt.org-style site context for LLMs
+# - /pricing.md  : machine-readable pricing (free, no signup)

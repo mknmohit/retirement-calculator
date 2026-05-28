@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Will My Money Last - Indian Rupee retirement calculator">
+  <title>Will My Money Last</title>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4338ca"/>
+    </linearGradient>
+    <radialGradient id="hl" cx="28%" cy="22%" r="65%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="65%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ring" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#hl)"/>
+  <rect x="6" y="6" width="500" height="500" rx="108" ry="108" fill="none" stroke="url(#ring)" stroke-width="2"/>
+
+  <g fill="#ffffff">
+    <rect x="132" y="128" width="248" height="52" rx="10"/>
+    <rect x="132" y="200" width="248" height="52" rx="10"/>
+    <path d="M 188 128
+             L 296 128
+             Q 360 128 360 190
+             Q 360 252 296 252
+             L 256 252
+             L 392 396
+             Q 396 400 392 404
+             L 332 404
+             Q 322 404 316 397
+             L 188 260
+             L 188 200
+             L 296 200
+             Q 314 200 314 190
+             Q 314 180 296 180
+             L 188 180
+             Z" fill-rule="evenodd"/>
+  </g>
+</svg>
