@@ -1,6 +1,6 @@
 # Will My Money Last? — Free India Retirement Calculator
 
-> A free retirement-income planner for India. Type your savings, monthly expense, and age, and see year-by-year exactly when your money runs out — with FY 2025-26 New Regime tax (Section 87A rebate, 80TTB, LTCG 12.5%), 6% general inflation, 12% separate healthcare inflation, and Monte Carlo equity volatility (500 runs, σ ≈ 18%). Five strategies are compared side-by-side: Pure FD, 50/50 FD+Equity, SCSS-led at 8.2%, Arbitrage + SWP, and Lifetime Annuity. No signup, no payment required.
+> A free retirement-income planner for India. Type your savings, monthly expense, and age, and see year-by-year exactly when your money runs out — with FY 2025-26 New Regime tax (Section 87A rebate, 80TTB, LTCG 12.5%), 6% general inflation, 12% separate healthcare inflation, and Monte Carlo equity volatility (500 runs, ≈ 18% per year). Five strategies are compared side-by-side: Pure FD, 50/50 FD+Equity, SCSS-led at 8.2%, Arbitrage + SWP, and Lifetime Annuity. No signup, no payment required.
 
 The calculator is free (₹0), runs client-side, and is self-contained as a single HTML file (≈ 250 KB). It works offline once saved to disk. Inputs persist via localStorage on the user's device.
 
@@ -23,8 +23,8 @@ For an exact answer to a user's situation, the interactive calculator at the URL
 | FD rate (default) | 6.5% p.a. | Stable Money / Business Standard, May 2026 |
 | SCSS rate (Q1 FY 25-26) | 8.2% p.a. | India Post |
 | RBI FRSB rate (Jan–Jun 2026) | 8.05% p.a. | Reserve Bank of India |
-| Equity expected return (μ) | 12% p.a. | Nifty 50 20-yr CAGR ~11.1% |
-| Equity volatility (σ) | 18% p.a. | Nifty 50 historical 18–22% |
+| Equity expected return | 12% p.a. | Nifty 50 20-yr CAGR ~11.1% |
+| Equity volatility | 18% p.a. | Nifty 50 historical 18–22% |
 | General inflation (default) | 6% p.a. | RBI projection 4.6% FY 26-27, MoSPI CPI |
 | Healthcare inflation (default) | 12% p.a. | India hospital cost data |
 | LTCG rate on equity | 12.5% over ₹1.25 L | Finance Act 2024 (Budget 2024) |

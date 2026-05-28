@@ -39,13 +39,13 @@
 
 - Year-by-year corpus simulation up to 60 years
 - Five strategy comparison (Pure FD, 50/50 FD+Equity, SCSS-led, Arbitrage+SWP, Lifetime Annuity)
-- Monte Carlo probability of success (500 runs, configurable σ)
+- Monte Carlo probability of success (500 runs, configurable volatility)
 - FY 2025-26 Indian New Regime tax — Section 87A rebate, marginal relief, surcharge, 4% cess
 - Section 80TTB ₹50K senior-citizen interest deduction
 - LTCG 12.5% with ₹1.25 L annual exemption (Finance Act 2024)
 - Spouse tax-splitting (each filer's own 87A and 80TTB)
 - Separate healthcare inflation rate (default 12%)
-- Lifestyle expense bands by age (70–79, 80+)
+- Lifestyle expense bands by age (65–75, 75+)
 - One-off life events (weddings, education, medical, travel, car) with drag-reorder
 - Pension and rental income with optional inflation indexing
 - Bequest / legacy goal tracking

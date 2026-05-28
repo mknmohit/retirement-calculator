@@ -31,8 +31,8 @@ const DEFAULTS = {
   pensionInflated: true,
   otherIncome: 0,                 // taxable other income (already in tax calc)
   // Lifestyle by age (multipliers on base monthly expense)
-  lifestyleMid: 0.95,             // age 70-79: typically slightly less
-  lifestyleOld: 1.15,             // age 80+: more care, domestic help
+  lifestyleMid: 0.95,             // age 65-75: typically slightly less
+  lifestyleOld: 1.15,             // age 75+: more care, domestic help
   // Tax
   taxMode: 'slab',
   flatTaxRate: 30,
@@ -212,8 +212,8 @@ function eventsInYear(inp, yr) {
 
 /* Lifestyle multiplier for the given age. */
 function lifestyleMult(inp, age) {
-  if (age >= 80) return inp.lifestyleOld;
-  if (age >= 70) return inp.lifestyleMid;
+  if (age >= 75) return inp.lifestyleOld;
+  if (age >= 65) return inp.lifestyleMid;
   return 1.0;
 }
 
@@ -1049,7 +1049,8 @@ function renderAll() {
 /* ─── Hero & verdict ─── */
 function renderHero(sim) {
   const inp = state.inputs;
-  setNum('kpiYears', sim.yearsLasted, v => sim.yearsLasted >= sim.maxYears ? sim.maxYears + '+' : Math.round(v).toString());
+  setNum('kpiYears', sim.yearsLasted, v =>
+    sim.yearsLasted >= sim.maxYears ? `${sim.maxYears}+ Years` : `${Math.round(v)} Years`);
   setNum('kpiFinalReal', sim.finalReal, v => fmtCr(v));
 
   // "Years money lasts" sub
@@ -1786,6 +1787,151 @@ const INFO_CONTENT = {
       <br><br>Enter the amount in <strong>today's rupees</strong>; the calculator inflates it to future rupees automatically.
       <br><br>In the event year, the calculator subtracts the amount from your corpus — drawn first from FD, then from equity (with LTCG tax computed on the equity portion).
       <br><br><strong>You can drag rows to reorder them</strong> — the order is just for your visual organisation; the actual scheduling comes from the "year" field.`,
+  },
+
+  /* ── Per-input help, prefixed "field-" ───────────────────────────────── */
+  'field-totalCorpus': {
+    title: 'Total corpus',
+    body: `The total amount you have today (or expect to have at retirement) — sum of bank balances, FDs, mutual funds, stocks, EPF, PPF, NPS, plus any real-estate sale proceeds you intend to invest.
+      <br><br>This is the <strong>starting fuel</strong> for the entire retirement plan. Everything below is calculated against this number.
+      <br><br><strong>Default ₹6 Cr</strong> ≈ what a Tier-1 city couple needs for ~25 years at ₹1 L/month base expenses. Adjust to your actual lumpsum.`,
+  },
+  'field-fdPercent': {
+    title: 'FD allocation',
+    body: `Percentage of your corpus parked in <strong>safe instruments</strong> (bank FD, post-office, debt funds, SCSS). The remainder goes to <strong>equity</strong> (Nifty 50 / Sensex index funds, large-cap mutual funds).
+      <br><br>Higher FD = lower volatility but lower long-term return → corpus may not last against inflation.<br>
+      Lower FD = higher returns but bigger swings (and more sequence-of-returns risk early in retirement).
+      <br><br><strong>Rule of thumb:</strong> "100 minus your age = % in equity". So at 60, ~40% equity / 60% FD. At 30 (saving phase), 70% equity / 30% FD.`,
+  },
+  'field-maxYears': {
+    title: 'Simulation horizon',
+    body: `How many years to project the plan into the future.
+      <br><br><strong>Default 50</strong> covers most realistic retirement spans (e.g., retire at 60, plan to age 110 — well past Indian life expectancy of ~70).
+      <br><br>Increase if you're FIRE-retiring at 35 and want to test 70+ years; decrease for a conservative shorter check.
+      <br><br>The "Years money lasts" stat is capped at this horizon — "50+" means the corpus survived the full window.`,
+  },
+  'field-fdRate': {
+    title: 'FD interest rate',
+    body: `Annual interest your <strong>safe bucket</strong> earns. Use a representative bank or post-office FD rate.
+      <br><br><strong>May 2026 reference:</strong> SBI 5y FD ~6.5% · HDFC ~7.0% · post-office 5y ~7.5% · <strong>SCSS 8.2%</strong> (60+ only).
+      <br><br>This rate is taxed under your selected Tax mode (slab or flat). For an even more conservative plan, plug in a post-tax rate manually.`,
+  },
+  'field-equityRate': {
+    title: 'Equity return',
+    body: `The <strong>expected long-term annual return</strong> from your equity bucket — Nifty 50 / Sensex index funds, large-cap mutual funds.
+      <br><br><strong>Reality check:</strong> Nifty 20-year CAGR is ~11–12%. Don't pencil in 15%+ — that's optimistic and will mislead the plan.
+      <br><br><strong>Sensible values:</strong> 10–12% base case · 8% conservative · 13% optimistic.
+      <br><br>This number is also the <em>centre</em> of the bell curve used by Monte Carlo to draw random yearly returns.
+      <br><br><span class="text-quiet">Finance textbooks call this the <em>mean</em> and write it as <strong>μ</strong> (Greek "mu") — same thing.</span>`,
+  },
+  'field-equityVolatility': {
+    title: 'Equity volatility',
+    body: `<strong>How much your equity returns swing</strong> from year to year — the typical wobble around the expected return.
+      <br><br><strong>Nifty 50 historical:</strong> 18–22% per year. So a 12% expected return with 18% volatility means actual yearly returns commonly land between <strong>−6% and +30%</strong>.
+      <br><br>This feeds the <strong>Monte Carlo simulation</strong> — higher volatility = more "bad sequence" outcomes where the plan fails despite a high average return.
+      <br><br>Set to <strong>0</strong> for a no-risk deterministic projection (every year hits the expected return exactly).
+      <br><br><span class="text-quiet">Finance textbooks call this the <em>standard deviation</em> and write it as <strong>σ</strong> (Greek "sigma") — same thing.</span>`,
+  },
+  'field-inflation': {
+    title: 'General inflation (CPI)',
+    body: `Annual rate at which your <strong>monthly living expenses grow</strong>. Indian CPI is structurally higher than developed-country CPI.
+      <br><br><strong>RBI target band:</strong> 2–6%. <strong>Recent FY:</strong> 4.6–5.0%. <strong>Long-term India CPI average:</strong> ~6%.
+      <br><br><strong>Default 6%</strong> gives a safer plan. Use 5% for an optimistic case, 7% if you're worried about food/energy shocks. This <em>does not</em> apply to healthcare — that has its own field below.`,
+  },
+  'field-healthInflation': {
+    title: 'Healthcare inflation',
+    body: `Annual rate at which <strong>medical costs rise</strong> — and they rise much faster than general CPI in India.
+      <br><br><strong>India healthcare inflation</strong> has run at 12–14% for 15+ years across hospital bills, surgery, ICU and insurance premiums. This is one of the biggest threats to retirement plans.
+      <br><br><strong>Applied to:</strong> health insurance premium growth and any medical-related life events.<br>
+      <strong>Don't be tempted</strong> to set this equal to CPI — that's the most common mistake in DIY plans.`,
+  },
+  'field-monthlyExpense': {
+    title: 'Monthly living expense',
+    body: `Your average current monthly spend on living costs — rent/EMI, groceries, utilities, transport, household help, dining out, kids, subscriptions. <strong>In today's rupees.</strong>
+      <br><br><strong>Tip:</strong> pull last 6 months of bank/credit-card statements and average. Add a 10% buffer for irregulars (gifts, repairs).
+      <br><br>The calculator inflates this every year by the General inflation rate, and adjusts it by the lifestyle multipliers in older age. Health insurance and life events are tracked separately.`,
+  },
+  'field-healthInsuranceAnnual': {
+    title: 'Annual health insurance',
+    body: `Yearly premium for family health cover plus a buffer for the out-of-pocket cap. <strong>In today's rupees.</strong>
+      <br><br><strong>Reference:</strong> ₹50K–₹70K/year for ₹50L–₹1Cr family floater at age 50. <strong>Goes up sharply post-65</strong> (₹1.5L+ is common).
+      <br><br>Inflates every year using the <strong>Healthcare inflation</strong> rate above (12–14% by default), <em>not</em> general CPI. This single line item is often the difference between a plan that survives and one that doesn't past age 80.`,
+  },
+  'field-pensionAnnual': {
+    title: 'Pension / rental income',
+    body: `Reliable yearly income from <strong>outside the corpus</strong> — Government pension, EPS, NPS annuity, rental from property, family business payout, etc. <strong>In today's rupees per year.</strong>
+      <br><br><strong>"Inflate" toggle:</strong> ON for income that grows with CPI (rental, NPS variable). OFF for fixed-forever streams (LIC annuity, most insurance pensions).
+      <br><br>This income is added to your withdrawal capacity each year, <strong>directly reducing</strong> what gets drawn from your corpus.`,
+  },
+  'field-otherIncome': {
+    title: 'Other taxable income',
+    body: `Other taxable income that is <em>not</em> interest or dividends — freelance, consulting, board fees, royalties, business distributions. <strong>In today's rupees per year.</strong>
+      <br><br>Treated as <strong>flat (no inflation)</strong> and added to FD interest when computing your total slab-taxed income for the year. Useful for "what if I keep earning ₹X for 5 years post-retirement" stress tests.
+      <br><br>If you expect inflating freelance income, use the Pension field with the inflate toggle ON instead.`,
+  },
+  'field-lifestyleMid': {
+    title: 'Age 65–75 expense multiplier',
+    body: `How your spending changes between ages <strong>65–75</strong> compared to your base monthly expense.
+      <br><br><strong>Default 0.95</strong> = expenses drop ~5% (empty-nesters, less travel, simpler routines).
+      <br><br><strong>Tweak to:</strong><br>
+      • <strong>1.0</strong> — no change<br>
+      • <strong>0.85</strong> — leaner phase<br>
+      • <strong>1.1</strong> — more travel, hobbies
+      <br><br>Applied only to the base monthly expense. Health insurance and life events are tracked separately.`,
+  },
+  'field-lifestyleOld': {
+    title: 'Age 75+ expense multiplier',
+    body: `Spending change after age <strong>75</strong> — typically <em>rises</em> again because of domestic help, in-home nursing, healthcare not covered by insurance, dependent care.
+      <br><br><strong>Default 1.15</strong> = +15% over base.
+      <br><br><strong>Tweak to:</strong><br>
+      • <strong>1.30+</strong> — fully assisted-living lifestyle<br>
+      • <strong>1.00</strong> — simple stay-at-home plan<br>
+      • <strong>0.85</strong> — moving in with family
+      <br><br>Health insurance premium inflation and any medical life-events are <em>separate</em> from this multiplier.`,
+  },
+  'field-taxMode': {
+    title: 'Tax mode for FD interest',
+    body: `How interest from your FD/SCSS bucket is taxed each year.
+      <br><br><strong>Slab (FY 25-26):</strong> interest is added to total income and taxed at the new-regime slabs (0% up to ₹4 L · 5% to ₹8 L · 10% to ₹12 L · 15% to ₹16 L · 20% to ₹20 L · 25% to ₹24 L · 30% above). <strong>87A rebate</strong> makes income up to ₹12 L tax-free for residents. Senior citizens get an extra ₹50K deduction u/s <strong>80TTB</strong>.
+      <br><br><strong>Flat %:</strong> assume one fixed effective rate (useful for quick stress tests or non-resident scenarios).`,
+  },
+  'field-flatTaxRate': {
+    title: 'Flat tax rate',
+    body: `Effective annual tax rate on FD interest, used <strong>only</strong> when "Flat %" tax mode is selected.
+      <br><br><strong>Realistic values:</strong><br>
+      • <strong>20–30%</strong> if you have multiple income sources at retirement<br>
+      • <strong>10–15%</strong> if FD interest is your only income<br>
+      • <strong>0%</strong> to bypass tax entirely (pre-tax stress test)
+      <br><br>This bypasses the slab calculation, 87A rebate, and 80TTB completely — use only for deterministic checks, not real planning.`,
+  },
+  'field-isSenior': {
+    title: 'Senior citizen (60+)',
+    body: `Are you aged <strong>60 or older</strong> as of the current FY? Toggling on unlocks two senior-specific tax breaks:
+      <br><br>1) <strong>Section 80TTB</strong> — first ₹50,000/year of bank-interest is fully tax-deductible.<br>
+      2) <strong>SCSS eligibility at 8.2%</strong> (vs ~6.5% bank FD) — used by the SCSS-led strategy.
+      <br><br>Toggle ON if you're 60+ <em>today</em>; the model assumes senior status throughout the simulation. For "I will be 60 in N years" planning, instead set the <em>Starting age</em> field — the model checks age each year automatically.`,
+  },
+  'field-spouse': {
+    title: 'Spouse on board',
+    body: `Are you planning <strong>as a couple</strong>? Toggle ON if your spouse will also retire and you want joint scheme limits.
+      <br><br><strong>Biggest impact:</strong> the SCSS deposit cap doubles from ₹30 L → <strong>₹60 L</strong> (each spouse can hold ₹30 L individually). The SCSS-led strategy uses this automatically.
+      <br><br>This <em>does not</em> change expenses (set those to your <strong>combined household</strong> level) or tax slabs (each spouse files separately in real life — this is a single-corpus simulation).`,
+  },
+  'field-startingAge': {
+    title: 'Starting age',
+    body: `Your age <strong>at the start of the simulation</strong> — i.e., today's age, not retirement age.
+      <br><br>Used to:<br>
+      • tag age labels on every chart<br>
+      • decide when 80TTB and SCSS kick in (at 60)<br>
+      • apply the 65–75 and 75+ lifestyle expense multipliers
+      <br><br><strong>Already retired?</strong> Set this to your current age.<br>
+      <strong>Planning ahead?</strong> Set to your current age and read the chart from the year you actually retire.`,
+  },
+  'field-bequestGoal': {
+    title: 'Bequest / legacy goal',
+    body: `<strong>Inheritance you want left in the corpus</strong> when the simulation ends — for children, charity, or a trust. <strong>In today's rupees</strong> (the model inflates internally for comparison).
+      <br><br>This is <strong>not enforced as a hard constraint</strong> — the calculator just shows whether your plan leaves at least this much (inflation-adjusted) at the horizon end.
+      <br><br><strong>Default 0</strong> = "spend it all yourself, no inheritance target". Set to a positive number to plan for a specific bequest.`,
   },
 };
 

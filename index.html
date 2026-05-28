@@ -145,7 +145,7 @@
           "LTCG 12.5% with ₹1.25 L exemption",
           "Spouse tax-splitting (each filer's own ₹12 L rebate)",
           "Separate healthcare inflation rate",
-          "Lifestyle expense bands by age (70-79, 80+)",
+          "Lifestyle expense bands by age (65-75, 75+)",
           "One-off life events (weddings, education, medical, travel)",
           "Pension and rental income (with inflation adjustment)",
           "Bequest / legacy goal tracking",
@@ -251,7 +251,7 @@
             "name": "What is Monte Carlo simulation and why does it matter?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Monte Carlo runs your strategy hundreds of times with randomly varying equity returns drawn from a normal distribution (mean = your μ, standard deviation = your σ, default 18% for Indian equities). Instead of a single 'average' answer, you get a probability — like '78% chance your plan succeeds'. This captures sequence-of-returns risk: a market crash in the first 3 years of retirement is far more damaging than the same crash in year 20, and a deterministic average return hides this."
+              "text": "Monte Carlo runs your strategy hundreds of times with randomly varying equity returns drawn from a bell curve — centred on your expected equity return, with spread (volatility) of 18% per year for Indian equities by default. Instead of a single 'average' answer, you get a probability — like '78% chance your plan succeeds'. This captures sequence-of-returns risk: a market crash in the first 3 years of retirement is far more damaging than the same crash in year 20, and a deterministic average return hides this."
             }
           },
           {
@@ -528,7 +528,7 @@
         "@type": "Dataset",
         "@id": "https://retirement.techdevix.com/#dataset",
         "name": "Default rates and assumptions used by the calculator (May 2026)",
-        "description": "Default Indian financial assumptions baked into this calculator: FD rates, SCSS rate, RBI FRSB rate, equity μ/σ, inflation, healthcare inflation, FY 2025-26 tax slabs.",
+        "description": "Default Indian financial assumptions baked into this calculator: FD rates, SCSS rate, RBI FRSB rate, equity return and volatility, inflation, healthcare inflation, FY 2025-26 tax slabs.",
         "creator": { "@id": "https://retirement.techdevix.com/#org" },
         "license": "https://creativecommons.org/publicdomain/zero/1.0/",
         "keywords": ["FD rate India", "SCSS rate", "RBI FRSB", "Nifty 50 returns", "CPI India", "FY 2025-26 tax slabs"],
@@ -537,8 +537,8 @@
         "variableMeasured": [
           { "@type": "PropertyValue", "name": "Default FD rate", "value": "6.5%", "unitText": "% per annum" },
           { "@type": "PropertyValue", "name": "Default SCSS rate", "value": "8.2%", "unitText": "% per annum" },
-          { "@type": "PropertyValue", "name": "Equity expected return (μ)", "value": "12%", "unitText": "% per annum" },
-          { "@type": "PropertyValue", "name": "Equity volatility (σ, annualised)", "value": "18%", "unitText": "% per annum" },
+          { "@type": "PropertyValue", "name": "Equity expected return", "value": "12%", "unitText": "% per annum" },
+          { "@type": "PropertyValue", "name": "Equity volatility (annualised)", "value": "18%", "unitText": "% per annum" },
           { "@type": "PropertyValue", "name": "General inflation", "value": "6%", "unitText": "% per annum" },
           { "@type": "PropertyValue", "name": "Healthcare inflation", "value": "12%", "unitText": "% per annum" },
           { "@type": "PropertyValue", "name": "LTCG rate on equity", "value": "12.5%", "unitText": "% (Budget 2024)" },
@@ -674,7 +674,7 @@
         <strong>At ~6% Indian inflation, you need roughly 25–30× your annual expenses</strong> as a starting corpus for a normal 25–30 year retirement, and <strong>35–40×</strong> for a 50-year early-retirement (FIRE) horizon. So spending ₹1 Lakh/month (₹12 L/year) means about <strong>₹3–3.6 Crore</strong> for normal retirement, <strong>₹4–5 Crore</strong> for early retirement.
       </p>
       <p class="tldr-note">
-        These are rules of thumb — the calculator below runs your <em>exact</em> numbers under FY 2025-26 New Regime tax (Section 87A rebate, Section 80TTB, LTCG 12.5% with ₹1.25 L exemption), 12% separate healthcare inflation, and 500 Monte Carlo runs of equity volatility (σ ≈ 18%). You get the exact age your money runs out, the probability of success, and a side-by-side comparison of <strong>five strategies</strong>: pure FD, 50/50, SCSS at 8.2%, Arbitrage + SWP, and lifetime annuity.
+        These are rules of thumb — the calculator below runs your <em>exact</em> numbers under FY 2025-26 New Regime tax (Section 87A rebate, Section 80TTB, LTCG 12.5% with ₹1.25 L exemption), 12% separate healthcare inflation, and 500 Monte Carlo runs of equity volatility (≈ 18% per year). You get the exact age your money runs out, the probability of success, and a side-by-side comparison of <strong>five strategies</strong>: pure FD, 50/50, SCSS at 8.2%, Arbitrage + SWP, and lifetime annuity.
       </p>
 
       <ul class="tldr-stats" aria-label="Key India retirement statistics, May 2026">
@@ -700,7 +700,7 @@
         </li>
         <li>
           <span class="tldr-stat-num">500</span>
-          <span class="tldr-stat-label">Monte Carlo runs per scenario, Nifty 50 σ ≈ 18% (20-yr realised)</span>
+          <span class="tldr-stat-label">Monte Carlo runs per scenario, Nifty 50 volatility ≈ 18% (20-yr realised)</span>
         </li>
       </ul>
     </aside>
@@ -813,7 +813,7 @@
     <div class="hero-stats">
       <div class="stat-card">
         <span class="stat-label">Years money lasts <button class="info-btn" data-info="years-lasted" aria-label="What does this mean?">ⓘ</button></span>
-        <span class="stat-value num-anim" id="kpiYears" data-tone="success">50+</span>
+        <span class="stat-value num-anim" id="kpiYears" data-tone="success">50+ Years</span>
         <span class="stat-sub" id="kpiYearsSub">across full horizon</span>
       </div>
       <div class="stat-card">
@@ -861,21 +861,21 @@
         <h3 class="input-group-title">Corpus &amp; allocation</h3>
         <div class="input-grid">
           <div class="input-field">
-            <label class="input-label">Total corpus <span class="input-hint" id="totalCorpusHint">₹6.00 Cr</span></label>
+            <label class="input-label"><span class="input-label-text">Total corpus <button type="button" class="info-btn" data-info="field-totalCorpus" aria-label="About total corpus">ⓘ</button></span> <span class="input-hint" id="totalCorpusHint">₹6.00 Cr</span></label>
             <div class="slider-row">
               <input type="range" id="totalCorpusRange" min="10000000" max="200000000" step="500000" value="60000000">
               <input type="number" id="totalCorpus" value="60000000" step="500000" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">FD allocation <span class="input-hint" id="fdPercentHint">50% · FD ₹3 Cr</span></label>
+            <label class="input-label"><span class="input-label-text">FD allocation <button type="button" class="info-btn" data-info="field-fdPercent" aria-label="About FD allocation">ⓘ</button></span> <span class="input-hint" id="fdPercentHint">50% · FD ₹3 Cr</span></label>
             <div class="slider-row">
               <input type="range" id="fdPercentRange" min="0" max="100" step="1" value="50">
               <input type="number" id="fdPercent" value="50" step="1" min="0" max="100">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Simulation horizon <span class="input-hint">years</span></label>
+            <label class="input-label"><span class="input-label-text">Simulation horizon <button type="button" class="info-btn" data-info="field-maxYears" aria-label="About simulation horizon">ⓘ</button></span> <span class="input-hint">years</span></label>
             <div class="slider-row">
               <input type="range" id="maxYearsRange" min="10" max="60" step="1" value="50">
               <input type="number" id="maxYears" value="50" step="1" min="10" max="60">
@@ -889,35 +889,35 @@
         <h3 class="input-group-title">Returns &amp; inflation</h3>
         <div class="input-grid">
           <div class="input-field">
-            <label class="input-label">FD interest rate <span class="input-hint">May'26 avg 6.5–7.2%</span></label>
+            <label class="input-label"><span class="input-label-text">FD interest rate <button type="button" class="info-btn" data-info="field-fdRate" aria-label="About FD interest rate">ⓘ</button></span> <span class="input-hint">May'26 avg 6.5–7.2%</span></label>
             <div class="slider-row">
               <input type="range" id="fdRateRange" min="3" max="10" step="0.05" value="6.5">
               <input type="number" id="fdRate" value="6.5" step="0.05" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Equity return (μ) <span class="input-hint">Nifty 20y: ~11%</span></label>
+            <label class="input-label"><span class="input-label-text">Equity return <button type="button" class="info-btn" data-info="field-equityRate" aria-label="About equity return">ⓘ</button></span> <span class="input-hint">Nifty 20y: ~11%</span></label>
             <div class="slider-row">
               <input type="range" id="equityRateRange" min="0" max="20" step="0.1" value="12">
               <input type="number" id="equityRate" value="12" step="0.1" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Equity volatility (σ) <span class="input-hint">used for risk analysis</span></label>
+            <label class="input-label"><span class="input-label-text">Equity volatility <button type="button" class="info-btn" data-info="field-equityVolatility" aria-label="About equity volatility">ⓘ</button></span> <span class="input-hint">year-to-year swings</span></label>
             <div class="slider-row">
               <input type="range" id="equityVolatilityRange" min="0" max="35" step="0.5" value="18">
               <input type="number" id="equityVolatility" value="18" step="0.5" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">General inflation (CPI) <span class="input-hint">RBI FY27: 4.6%</span></label>
+            <label class="input-label"><span class="input-label-text">General inflation (CPI) <button type="button" class="info-btn" data-info="field-inflation" aria-label="About general inflation">ⓘ</button></span> <span class="input-hint">RBI FY27: 4.6%</span></label>
             <div class="slider-row">
               <input type="range" id="inflationRange" min="0" max="15" step="0.1" value="6">
               <input type="number" id="inflation" value="6" step="0.1" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Healthcare inflation <span class="input-hint">India avg 12-14%</span></label>
+            <label class="input-label"><span class="input-label-text">Healthcare inflation <button type="button" class="info-btn" data-info="field-healthInflation" aria-label="About healthcare inflation">ⓘ</button></span> <span class="input-hint">India avg 12-14%</span></label>
             <div class="slider-row">
               <input type="range" id="healthInflationRange" min="0" max="20" step="0.5" value="12">
               <input type="number" id="healthInflation" value="12" step="0.5" min="0">
@@ -931,21 +931,21 @@
         <h3 class="input-group-title">Expenses &amp; income (today's rupees)</h3>
         <div class="input-grid">
           <div class="input-field">
-            <label class="input-label">Monthly living expense <span class="input-hint" id="monthlyExpenseHint">₹1.00 L/m</span></label>
+            <label class="input-label"><span class="input-label-text">Monthly living expense <button type="button" class="info-btn" data-info="field-monthlyExpense" aria-label="About monthly living expense">ⓘ</button></span> <span class="input-hint" id="monthlyExpenseHint">₹1.00 L/m</span></label>
             <div class="slider-row">
               <input type="range" id="monthlyExpenseRange" min="20000" max="500000" step="5000" value="100000">
               <input type="number" id="monthlyExpense" value="100000" step="5000" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Annual health insurance <span class="input-hint">premium + reserve</span></label>
+            <label class="input-label"><span class="input-label-text">Annual health insurance <button type="button" class="info-btn" data-info="field-healthInsuranceAnnual" aria-label="About annual health insurance">ⓘ</button></span> <span class="input-hint">premium + reserve</span></label>
             <div class="slider-row">
               <input type="range" id="healthInsuranceAnnualRange" min="0" max="300000" step="5000" value="60000">
               <input type="number" id="healthInsuranceAnnual" value="60000" step="5000" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Pension / rental income (annual)
+            <label class="input-label"><span class="input-label-text">Pension / rental income (annual) <button type="button" class="info-btn" data-info="field-pensionAnnual" aria-label="About pension or rental income">ⓘ</button></span>
               <span class="input-hint"><label class="toggle" style="vertical-align:middle"><input type="checkbox" id="pensionInflated" checked><span class="toggle-track"></span></label> inflate</span>
             </label>
             <div class="slider-row">
@@ -954,21 +954,21 @@
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Other taxable income (annual) <span class="input-hint">slab-taxed, no inflation</span></label>
+            <label class="input-label"><span class="input-label-text">Other taxable income (annual) <button type="button" class="info-btn" data-info="field-otherIncome" aria-label="About other taxable income">ⓘ</button></span> <span class="input-hint">slab-taxed, no inflation</span></label>
             <div class="slider-row">
               <input type="range" id="otherIncomeRange" min="0" max="5000000" step="50000" value="0">
               <input type="number" id="otherIncome" value="0" step="50000" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Age 70–79 expense × <span class="input-hint">typically slightly lower</span></label>
+            <label class="input-label"><span class="input-label-text">Age 65–75 expense × <button type="button" class="info-btn" data-info="field-lifestyleMid" aria-label="About age 65 to 75 expense multiplier">ⓘ</button></span> <span class="input-hint">typically slightly lower</span></label>
             <div class="slider-row">
               <input type="range" id="lifestyleMidRange" min="0.5" max="1.5" step="0.05" value="0.95">
               <input type="number" id="lifestyleMid" value="0.95" step="0.05" min="0">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Age 80+ expense × <span class="input-hint">more care, domestic help</span></label>
+            <label class="input-label"><span class="input-label-text">Age 75+ expense × <button type="button" class="info-btn" data-info="field-lifestyleOld" aria-label="About age 75 plus expense multiplier">ⓘ</button></span> <span class="input-hint">more care, domestic help</span></label>
             <div class="slider-row">
               <input type="range" id="lifestyleOldRange" min="0.5" max="2" step="0.05" value="1.15">
               <input type="number" id="lifestyleOld" value="1.15" step="0.05" min="0">
@@ -1000,7 +1000,7 @@
         <h3 class="input-group-title">Tax, personal &amp; legacy</h3>
         <div class="input-grid">
           <div class="input-field">
-            <label class="input-label">Tax mode for FD interest</label>
+            <label class="input-label"><span class="input-label-text">Tax mode for FD interest <button type="button" class="info-btn" data-info="field-taxMode" aria-label="About tax mode for FD interest">ⓘ</button></span></label>
             <div class="segmented" id="taxModeSeg">
               <input type="radio" name="taxMode" id="taxMode-slab" value="slab" checked>
               <label for="taxMode-slab">Slab (FY 25-26)</label>
@@ -1009,35 +1009,35 @@
             </div>
           </div>
           <div class="input-field" id="flatTaxField" style="display:none">
-            <label class="input-label">Flat tax rate <span class="input-hint">if you assume one</span></label>
+            <label class="input-label"><span class="input-label-text">Flat tax rate <button type="button" class="info-btn" data-info="field-flatTaxRate" aria-label="About flat tax rate">ⓘ</button></span> <span class="input-hint">if you assume one</span></label>
             <div class="slider-row">
               <input type="range" id="flatTaxRateRange" min="0" max="40" step="1" value="30">
               <input type="number" id="flatTaxRate" value="30" step="1" min="0" max="40">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label" for="isSenior">Senior citizen (60+) <span class="input-hint">unlocks ₹50K 80TTB</span></label>
+            <label class="input-label" for="isSenior"><span class="input-label-text">Senior citizen (60+) <button type="button" class="info-btn" data-info="field-isSenior" aria-label="About senior citizen status">ⓘ</button></span> <span class="input-hint">unlocks ₹50K 80TTB</span></label>
             <label class="toggle">
               <input type="checkbox" id="isSenior">
               <span class="toggle-track"></span>
             </label>
           </div>
           <div class="input-field">
-            <label class="input-label" for="spouse">Spouse on board <span class="input-hint">doubles SCSS to ₹60 L</span></label>
+            <label class="input-label" for="spouse"><span class="input-label-text">Spouse on board <button type="button" class="info-btn" data-info="field-spouse" aria-label="About spouse on board">ⓘ</button></span> <span class="input-hint">doubles SCSS to ₹60 L</span></label>
             <label class="toggle">
               <input type="checkbox" id="spouse">
               <span class="toggle-track"></span>
             </label>
           </div>
           <div class="input-field">
-            <label class="input-label">Starting age</label>
+            <label class="input-label"><span class="input-label-text">Starting age <button type="button" class="info-btn" data-info="field-startingAge" aria-label="About starting age">ⓘ</button></span></label>
             <div class="slider-row">
               <input type="range" id="startingAgeRange" min="20" max="80" step="1" value="30">
               <input type="number" id="startingAge" value="30" step="1" min="1" max="120">
             </div>
           </div>
           <div class="input-field">
-            <label class="input-label">Bequest / legacy goal <span class="input-hint" id="bequestHint">today's ₹</span></label>
+            <label class="input-label"><span class="input-label-text">Bequest / legacy goal <button type="button" class="info-btn" data-info="field-bequestGoal" aria-label="About bequest or legacy goal">ⓘ</button></span> <span class="input-hint" id="bequestHint">today's ₹</span></label>
             <div class="slider-row">
               <input type="range" id="bequestGoalRange" min="0" max="100000000" step="500000" value="0">
               <input type="number" id="bequestGoal" value="0" step="500000" min="0">
@@ -1282,7 +1282,7 @@
     <div class="section-head">
       <span class="section-eyebrow">Step 7 · sequence-of-returns risk</span>
       <h2 class="section-title">Monte Carlo risk analysis</h2>
-      <p class="section-subtitle">Real markets aren't smooth. Re-runs your strategy <strong id="mcRunsLabel">500</strong> times with random equity returns drawn from N(μ, σ) — same μ as above, σ from your <span class="mono">Equity volatility</span> input. Tells you the <em>probability</em> your plan survives, not just an average.</p>
+      <p class="section-subtitle">Real markets aren't smooth. Re-runs your strategy <strong id="mcRunsLabel">500</strong> times with random yearly equity returns drawn from a bell curve — <em>centred</em> on your <span class="mono">Equity return</span>, with <em>spread</em> set by your <span class="mono">Equity volatility</span> input. Tells you the <em>probability</em> your plan survives, not just an average.</p>
     </div>
 
     <div class="hero-stats" id="mcStats"></div>
@@ -1420,7 +1420,7 @@
       </div>
       <div class="glossary-item" itemscope itemtype="https://schema.org/DefinedTerm" itemprop="hasDefinedTerm">
         <dt itemprop="name">Monte Carlo Simulation</dt>
-        <dd itemprop="description">Instead of using one "average" return, the calculator runs the same plan <strong>500 times with random returns</strong> drawn from a normal distribution (mean μ, standard deviation σ). The output is a <strong>probability</strong> your plan succeeds, not a single answer.</dd>
+        <dd itemprop="description">Instead of using one "average" return, the calculator runs the same plan <strong>500 times with random returns</strong> drawn from a bell curve — centred on your expected equity return, with spread set by equity volatility. The output is a <strong>probability</strong> your plan succeeds, not a single answer.</dd>
       </div>
       <div class="glossary-item" itemscope itemtype="https://schema.org/DefinedTerm" itemprop="hasDefinedTerm">
         <dt itemprop="name">Sequence-of-Returns Risk</dt>
@@ -1530,7 +1530,7 @@
       <details class="faq-item">
         <summary class="faq-summary">What is Monte Carlo simulation and why does it matter?</summary>
         <div class="faq-body">
-          <p>Instead of using one "average" equity return (say 12%), Monte Carlo runs the same plan <strong>500 times with randomly varying returns</strong> drawn from a normal distribution: mean = your μ (12%), standard deviation = your σ (18% for Indian equity historically).</p>
+          <p>Instead of using one "average" equity return (say 12%), Monte Carlo runs the same plan <strong>500 times with randomly varying returns</strong> drawn from a bell curve: <strong>centred</strong> on your expected return (12%), with <strong>spread</strong> set by equity volatility (18% for Indian equity historically).</p>
           <p>The output isn't a single answer — it's a <strong>probability</strong>. Something like "78% chance your plan succeeds."</p>
           <p>This matters because of <strong>sequence-of-returns risk</strong>: a 30% crash in year 2 of retirement is devastating; the same crash in year 20 is mostly harmless. A simple "average return" calculation hides this. Monte Carlo exposes it.</p>
         </div>
@@ -1627,7 +1627,7 @@
       Income-tax slabs FY 2025-26 New Regime per <a href="https://incometaxindia.gov.in/" rel="external nofollow noopener" target="_blank">Income-tax Department, Government of India (Finance Act 2025)</a> ·
       CPI 3.48% Apr 2026 (provisional) per <a href="https://mospi.gov.in/" rel="external nofollow noopener" target="_blank">Ministry of Statistics &amp; Programme Implementation (MoSPI)</a> ·
       RBI projection 4.6% for FY 2026-27 per <a href="https://www.rbi.org.in/Scripts/AnnualPolicy.aspx" rel="external nofollow noopener" target="_blank">RBI Monetary Policy Statement</a> ·
-      Nifty 50 20-yr CAGR ~11.1% with σ ≈ 18-22% per <a href="https://www.niftyindices.com/" rel="external nofollow noopener" target="_blank">NSE Indices</a> ·
+      Nifty 50 20-yr CAGR ~11.1% with annual volatility ≈ 18-22% per <a href="https://www.niftyindices.com/" rel="external nofollow noopener" target="_blank">NSE Indices</a> ·
       Safe withdrawal rate 4% rule per <a href="https://www.financialplanningassociation.org/" rel="external nofollow noopener" target="_blank">William P. Bengen, "Determining Withdrawal Rates Using Historical Data," Journal of Financial Planning (1994)</a>.
       <br><br>
       <strong>Methodology:</strong> Year-by-year deterministic simulation for the four named strategies plus Monte Carlo (500 runs, normal-distribution equity returns clamped at -55%). FY 2025-26 New Regime tax with Section 87A rebate, marginal relief, 4% Health &amp; Education Cess, surcharge 10-25%, Section 80TTB (₹50K for seniors 60+), LTCG 12.5% with ₹1.25 L exemption. Spouse toggle splits joint income across two filers (doubles 87A benefit and 80TTB if both are seniors).
