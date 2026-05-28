@@ -2006,6 +2006,20 @@ function exportCSV() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/* ─── FAQ accordion: opening one item closes the others ─── */
+function setupFAQ() {
+  const items = document.querySelectorAll('.faq-list .faq-item');
+  if (!items.length) return;
+  items.forEach(item => {
+    item.addEventListener('toggle', () => {
+      if (!item.open) return;
+      items.forEach(other => {
+        if (other !== item && other.open) other.open = false;
+      });
+    });
+  });
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    BOOT
    ════════════════════════════════════════════════════════════════════════ */
@@ -2017,6 +2031,7 @@ function boot() {
   // Wire events
   setupEvents();
   setupInfoButtons();
+  setupFAQ();
   // Dynamic year in brand subtitle
   const yearEl = document.getElementById('brandYear');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
