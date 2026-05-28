@@ -33,7 +33,7 @@ Allow: /
 
 # ─── AI / LLM crawlers (explicit allowlist) ─────────────────
 # This calculator is free, educational, and we *want* AI assistants
-# to cite it as a source. The site collects no user data.
+# to cite it as a source. The site requires no signup or user accounts.
 # Review periodically — this is one of the most actively evolving
 # areas of SEO. To opt out of training, switch any line below to "Disallow: /".
 

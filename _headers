@@ -6,9 +6,11 @@
 # separates blocks. Wildcards (*) and placeholders (:name) are supported.
 # Specific paths take precedence over /* matches for the same header.
 #
-# Cache strategy: this calculator is frozen — single-page static HTML
-# with no future planned updates. So we cache aggressively. If you ever
-# DO need to ship a change, see "Cache-busting escape hatch" below.
+# Caching: NOT defined here. Cache TTLs are managed in the Cloudflare
+# dashboard via Caching → Cache Rules so we can tune them without a
+# redeploy. Deploys are made instant by an auto-purge step (see README
+# / deploy script). This file only sets security headers and the
+# content-type overrides Pages doesn't infer correctly on its own.
 # ════════════════════════════════════════════════════════════════════
 
 
@@ -21,89 +23,24 @@
   Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
   X-DNS-Prefetch-Control: on
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.googletagmanager.com https://www.clarity.ms https://*.clarity.ms; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.clarity.ms; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com https://*.cloudflareinsights.com https://www.google-analytics.com https://*.analytics.google.com https://*.g.doubleclick.net https://*.clarity.ms https://c.bing.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
 
-# ─── HTML — 30 days browser cache ────────────────────────────────────
-# Long but NOT `immutable`, so a Cloudflare "Purge Everything" + browser
-# hard-refresh can still ship an emergency fix if you ever need one.
-/
-  Cache-Control: public, max-age=2592000
-
-/*.html
-  Cache-Control: public, max-age=2592000
-
-
-# ─── Static binary assets — 1 year + immutable ───────────────────────
-# `immutable` tells browsers: do NOT revalidate, ever, for the cache
-# lifetime. Maximum performance. To bust, rename the file (e.g.
-# og-image-v2.jpg) and update references in HTML / manifest.
-
-/og-image.jpg
-  Cache-Control: public, max-age=31536000, immutable
-
-/favicon.ico
-  Cache-Control: public, max-age=31536000, immutable
-
-/favicon.svg
-  Cache-Control: public, max-age=31536000, immutable
-
-/apple-touch-icon.png
-  Cache-Control: public, max-age=31536000, immutable
-
-/android-chrome-192x192.png
-  Cache-Control: public, max-age=31536000, immutable
-
-/android-chrome-512x512.png
-  Cache-Control: public, max-age=31536000, immutable
-
-/maskable-icon-512x512.png
-  Cache-Control: public, max-age=31536000, immutable
-
-
-# ─── Crawler / metadata files — 30 days ──────────────────────────────
-# These rarely change either. Search engines refetch on their own schedule
-# (a few times per week for active sites) regardless of cache headers.
+# ─── Content-Type overrides ─────────────────────────────────────────
+# Pages infers most content types from the extension. These few need
+# to be set explicitly because the default is wrong or absent.
 
 /sitemap.xml
-  Cache-Control: public, max-age=2592000
   Content-Type: application/xml; charset=utf-8
 
 /robots.txt
-  Cache-Control: public, max-age=2592000
   Content-Type: text/plain; charset=utf-8
 
 /llms.txt
-  Cache-Control: public, max-age=2592000
   Content-Type: text/plain; charset=utf-8
 
 /pricing.md
-  Cache-Control: public, max-age=2592000
   Content-Type: text/markdown; charset=utf-8
 
-
-# ─── PWA manifest — 1 year + immutable ───────────────────────────────
 /site.webmanifest
-  Cache-Control: public, max-age=31536000, immutable
   Content-Type: application/manifest+json; charset=utf-8
-
-
-# ════════════════════════════════════════════════════════════════════
-# Cache-busting escape hatch (in case you EVER need to ship a change)
-# ════════════════════════════════════════════════════════════════════
-#
-# Cloudflare Pages does NOT auto-purge the edge cache on redeploy.
-# With these aggressive headers, users may see stale content for up to
-# 30 days (HTML) or 1 year (assets) after you deploy a fix.
-#
-# To force everyone to fresh content immediately:
-#
-# 1. Redeploy the change to Cloudflare Pages as normal.
-# 2. Cloudflare Dashboard → Websites → techdevix.com → Caching →
-#    Configuration → "Purge Everything" → confirm.
-#    (This wipes the edge cache for the entire zone — instant.)
-# 3. End-user browsers still hold their own private cache. They will
-#    refresh on hard-reload (Cmd+Shift+R) or when their max-age expires.
-#    For binary assets marked `immutable`, the only way to force-update
-#    individual users is to rename the file (e.g. /favicon.svg →
-#    /favicon-v2.svg) and update every reference in HTML + manifest.
-# ════════════════════════════════════════════════════════════════════

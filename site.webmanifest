@@ -1,7 +1,7 @@
 {
   "name": "Will My Money Last - Retirement Calculator India",
   "short_name": "Will My Money Last",
-  "description": "Free interactive retirement income planner for India: type your savings, monthly expense, and age, and see year-by-year when your money runs out. Includes FY 2025-26 tax, inflation, healthcare costs, and Monte Carlo simulation. Runs in your browser - no signup, no data leaves your device.",
+  "description": "Free interactive retirement income planner for India: type your savings, monthly expense, and age, and see year-by-year when your money runs out. Includes FY 2025-26 tax, inflation, healthcare costs, and Monte Carlo simulation. Free, no signup required.",
   "start_url": "/",
   "scope": "/",
   "id": "/",

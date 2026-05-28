@@ -1,11 +1,11 @@
 # Will My Money Last? — Free India Retirement Calculator
 
-A free, browser-only retirement-income planner for India. Type your savings, monthly expense, and age, and see year-by-year exactly when your money runs out — under FY 2025-26 New Regime tax, 6% inflation, 12% healthcare inflation, and a 500-run Monte Carlo on equity volatility. Five drawdown strategies are compared side-by-side: Pure FD, 50/50 FD+Equity, SCSS-led, Arbitrage + SWP, and Lifetime Annuity.
+A free retirement-income planner for India. Type your savings, monthly expense, and age, and see year-by-year exactly when your money runs out — under FY 2025-26 New Regime tax, 6% inflation, 12% healthcare inflation, and a 500-run Monte Carlo on equity volatility. Five drawdown strategies are compared side-by-side: Pure FD, 50/50 FD+Equity, SCSS-led, Arbitrage + SWP, and Lifetime Annuity.
 
 Live: **https://retirement.techdevix.com/**
 
 - Single self-contained HTML file (~250 KB), works offline once saved
-- No signup, no payment, no data collection — everything runs client-side
+- No signup, no payment — retirement calculations run client-side
 - Inputs persist in `localStorage` on the user's device only
 
 ## Features
@@ -101,9 +101,8 @@ Currently deployed at `retirement.techdevix.com`.
 
 ## Privacy
 
-- No accounts, no tracking, no analytics, no third-party scripts
-- All math runs in the browser
-- The only persistence is `localStorage` on the user's device — cleared on Reset or browser site-data clear
+- All financial calculations run client-side in your browser
+- Inputs persist in `localStorage` on your device — cleared on Reset or by clearing browser site data
 
 ## License
 

@@ -107,32 +107,61 @@ function inINR(n) {
 /* ════════════════════════════════════════════════════════════════════════
    TAX HELPERS (FY 2025-26 New Regime)
    ════════════════════════════════════════════════════════════════════════ */
+const SLAB_TABLE = [
+  [0,        400000,   0],
+  [400000,   800000,   0.05],
+  [800000,   1200000,  0.10],
+  [1200000,  1600000,  0.15],
+  [1600000,  2000000,  0.20],
+  [2000000,  2400000,  0.25],
+  [2400000,  Infinity, 0.30],
+];
+
+/** Tax after slab schedule + 87A rebate / marginal relief, BEFORE surcharge and cess. */
+function preSurchargeTax(inc) {
+  if (inc <= 0) return 0;
+  let t = 0;
+  for (const [lo, hi, r] of SLAB_TABLE) {
+    if (inc > lo) t += (Math.min(inc, hi) - lo) * r;
+  }
+  if (inc <= 1200000) return 0;                 // §87A rebate (New Regime, ≤ ₹12 L)
+  const above = inc - 1200000;
+  if (t > above) t = above;                     // §87A marginal relief
+  return t;
+}
+
 function computeSlabTax(income, isSenior) {
   let inc = income;
   if (isSenior) inc = Math.max(0, inc - 50000);  // Section 80TTB
   if (inc <= 0) return 0;
 
-  let tax = 0;
-  const slabs = [
-    [0, 400000, 0],
-    [400000, 800000, 0.05],
-    [800000, 1200000, 0.10],
-    [1200000, 1600000, 0.15],
-    [1600000, 2000000, 0.20],
-    [2000000, 2400000, 0.25],
-    [2400000, Infinity, 0.30],
-  ];
-  for (const [lo, hi, r] of slabs) {
-    if (inc > lo) tax += (Math.min(inc, hi) - lo) * r;
+  let tax = preSurchargeTax(inc);
+
+  // Surcharge with marginal relief at each threshold (New Regime caps at 25%).
+  // Marginal-relief rule: (tax + surcharge) at income X cannot exceed
+  // (tax + surcharge at the threshold) + (X − threshold).
+  let surcharge = 0;
+  if (inc > 20000000) {
+    surcharge = tax * 0.25;
+    const ceiling = preSurchargeTax(20000000) * 1.15 + (inc - 20000000);
+    if (tax + surcharge > ceiling) surcharge = Math.max(0, ceiling - tax);
+  } else if (inc > 10000000) {
+    surcharge = tax * 0.15;
+    const ceiling = preSurchargeTax(10000000) * 1.10 + (inc - 10000000);
+    if (tax + surcharge > ceiling) surcharge = Math.max(0, ceiling - tax);
+  } else if (inc > 5000000) {
+    surcharge = tax * 0.10;
+    const ceiling = preSurchargeTax(5000000) + (inc - 5000000);
+    if (tax + surcharge > ceiling) surcharge = Math.max(0, ceiling - tax);
   }
-  if (inc <= 1200000) tax = 0;            // 87A rebate
-  const above = inc - 1200000;
-  if (inc > 1200000 && tax > above) tax = above;  // marginal relief
-  tax *= 1.04;                              // health & education cess
-  if (inc > 5000000 && inc <= 10000000) tax *= 1.10;
-  else if (inc > 10000000 && inc <= 20000000) tax *= 1.15;
-  else if (inc > 20000000) tax *= 1.25;
+  tax += surcharge;
+  tax *= 1.04;                                  // Health & Education Cess (4%)
   return tax;
+}
+
+/** Effective annual LTCG exemption — doubles when both spouses file separately. */
+function yearlyLtcgExemption(inp) {
+  return (inp.spouse ? 2 : 1) * inp.ltcgExemption;
 }
 
 function fdTaxOn(grossInterest, inp = state.inputs) {
@@ -151,15 +180,24 @@ function fdTaxOn(grossInterest, inp = state.inputs) {
   return Math.max(0, taxWith - taxWithout);
 }
 
-function withdrawEquity(value, cost, amount, inp = state.inputs) {
-  if (value <= 0 || amount <= 0) return { netCash: 0, tax: 0, rv: value, rc: cost };
+/**
+ * Sell `amount` worth of equity (proportional cost-basis). LTCG is computed on the
+ * realised gain after applying `exemption` — pass the *remaining* per-year exemption
+ * so that multiple sales within the same year share the single ₹1.25 L allowance.
+ * If `exemption` is omitted the full yearly exemption is used (single-sale callers).
+ */
+function withdrawEquity(value, cost, amount, inp = state.inputs, exemption) {
+  if (value <= 0 || amount <= 0) {
+    return { netCash: 0, tax: 0, rv: value, rc: cost, gain: 0 };
+  }
   const sell = Math.min(amount, value);
   const frac = sell / value;
   const costSold = cost * frac;
   const gain = sell - costSold;
-  const taxable = Math.max(0, gain - inp.ltcgExemption);
+  const eff = (exemption === undefined) ? yearlyLtcgExemption(inp) : Math.max(0, exemption);
+  const taxable = Math.max(0, gain - eff);
   const tax = taxable * inp.ltcgRate / 100;
-  return { netCash: sell - tax, tax, rv: value - sell, rc: cost - costSold };
+  return { netCash: sell - tax, tax, rv: value - sell, rc: cost - costSold, gain };
 }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -217,6 +255,8 @@ function simulateUserStrategy(inp = state.inputs, opts = {}) {
     const totalOutflow = annualExp + health + eventOut;
     const incomeIn = net + pension;
     let fdDraw = 0, eqTaxThisYr = 0, surplus = 0;
+    // LTCG ₹1.25 L exemption is per filer per FY — shared across all equity sales in the year.
+    let exemptionLeft = yearlyLtcgExemption(inp);
 
     if (incomeIn >= totalOutflow) {
       surplus = incomeIn - totalOutflow;
@@ -229,25 +269,31 @@ function simulateUserStrategy(inp = state.inputs, opts = {}) {
       totalSpent += incomeIn + fdDraw;
       const still = need - fdDraw;
       if (still > 0 && eq > 0) {
-        const r = withdrawEquity(eq, eqCost, still * 1.15, inp);
+        const r = withdrawEquity(eq, eqCost, still * 1.15, inp, exemptionLeft);
         eq = r.rv; eqCost = r.rc;
+        exemptionLeft = Math.max(0, exemptionLeft - r.gain);
         totalEqTax += r.tax; eqTaxThisYr += r.tax;
-        totalSpent += still;
+        // Spend exactly `still`; any over-sale proceeds (gross-up buffer) park in FD.
+        const used = Math.min(r.netCash, still);
+        totalSpent += used;
+        fd += (r.netCash - used);
       }
     }
 
     let rebalanced = false;
     if (fdStart > 5000 && fd < 5000 && eq > 0) {
       const half = eq / 2;
-      const r = withdrawEquity(eq, eqCost, half, inp);
+      const r = withdrawEquity(eq, eqCost, half, inp, exemptionLeft);
       fd = r.netCash; eq = r.rv; eqCost = r.rc;
+      exemptionLeft = Math.max(0, exemptionLeft - r.gain);
       totalEqTax += r.tax; eqTaxThisYr += r.tax;
       rebalances++; rebalanced = true;
     }
 
     inflationFactor *= (1 + inp.inflation / 100);
     const total = Math.max(0, fd + eq);
-    const withdrawalRate = (fdDraw + eventOut) / Math.max(1, fdStart + eqStart);
+    // Withdrawal rate = total spending / start-of-year corpus, directly comparable to the 4% rule.
+    const withdrawalRate = totalOutflow / Math.max(1, fdStart + eqStart);
 
     years.push({
       yr, age,
@@ -311,6 +357,9 @@ function simulateImproved(inp = state.inputs, opts = {}) {
     const totalOutflow = annualExp + health + eventOut;
     const incomeIn = net + pension;
     let fdDraw = 0, eqTaxThisYr = 0, surplus = 0;
+    // Per-year shared LTCG exemption (doubled for spouse).
+    let exemptionLeft = yearlyLtcgExemption(inp);
+
     if (incomeIn >= totalOutflow) {
       surplus = incomeIn - totalOutflow; fd += surplus;
       totalSpent += totalOutflow;
@@ -321,32 +370,38 @@ function simulateImproved(inp = state.inputs, opts = {}) {
       totalSpent += incomeIn + fdDraw;
       const still = need - fdDraw;
       if (still > 0 && eq > 0) {
-        const r = withdrawEquity(eq, eqCost, still * 1.05, inp);
+        const r = withdrawEquity(eq, eqCost, still * 1.05, inp, exemptionLeft);
         eq = r.rv; eqCost = r.rc;
+        exemptionLeft = Math.max(0, exemptionLeft - r.gain);
         totalEqTax += r.tax; eqTaxThisYr += r.tax;
-        totalSpent += still;
+        const used = Math.min(r.netCash, still);
+        totalSpent += used;
+        fd += (r.netCash - used);
       }
     }
 
-    // Annual top-up keeping LTCG ≤ exemption in early years
+    // Annual top-up — cap the sale so realised gain ≤ remaining exemption in early years.
     const desired = totalOutflow * floorYears;
     if (fd < desired && eq > 0) {
       const target = desired - fd;
       const valueOverCost = eq > 0 ? Math.max(0, 1 - eqCost / eq) : 0;
       let smart = target;
       if (valueOverCost > 0.01 && yr <= 8) {
-        const tipToExemption = inp.ltcgExemption / valueOverCost;
+        const tipToExemption = exemptionLeft / valueOverCost;
         smart = Math.min(target, tipToExemption);
       }
-      const r = withdrawEquity(eq, eqCost, smart, inp);
-      fd += r.netCash; eq = r.rv; eqCost = r.rc;
-      totalEqTax += r.tax; eqTaxThisYr += r.tax;
-      if (smart >= 50000) rebalances++;
+      if (smart > 0) {
+        const r = withdrawEquity(eq, eqCost, smart, inp, exemptionLeft);
+        fd += r.netCash; eq = r.rv; eqCost = r.rc;
+        exemptionLeft = Math.max(0, exemptionLeft - r.gain);
+        totalEqTax += r.tax; eqTaxThisYr += r.tax;
+        if (smart >= 50000) rebalances++;
+      }
     }
 
     inflationFactor *= (1 + inp.inflation / 100);
     const total = Math.max(0, fd + scss + eq);
-    const withdrawalRate = (fdDraw + eventOut) / Math.max(1, fdStart + eqStart);
+    const withdrawalRate = totalOutflow / Math.max(1, fdStart + eqStart);
 
     years.push({
       yr, age,
@@ -399,7 +454,7 @@ function simulatePureFD(inp = state.inputs) {
 
     inflationFactor *= (1 + inp.inflation / 100);
     const total = Math.max(0, fd);
-    const withdrawalRate = (fdDraw + eventOut) / Math.max(1, fdStart);
+    const withdrawalRate = totalOutflow / Math.max(1, fdStart);
 
     years.push({
       yr, age,
@@ -452,11 +507,15 @@ function simulateSWP(inp = state.inputs, opts = {}) {
     const totalOutflow = annualExp + health + eventOut;
     const cashNeed = Math.max(0, totalOutflow - pension);
     let eqTaxThisYr = 0;
+    // Both arbitrage and equity are LTCG-taxed (arbitrage funds are ≥65% equity).
+    // The ₹1.25 L exemption is shared across all such sales within a year.
+    let exemptionLeft = yearlyLtcgExemption(inp);
 
     if (liquid < cashNeed && arbitrage > 0) {
       const grossNeed = cashNeed - liquid;
-      const r = withdrawEquity(arbitrage, arbCost, grossNeed * 1.05, inp);
+      const r = withdrawEquity(arbitrage, arbCost, grossNeed * 1.05, inp, exemptionLeft);
       arbitrage = r.rv; arbCost = r.rc; liquid += r.netCash;
+      exemptionLeft = Math.max(0, exemptionLeft - r.gain);
       totalEqTax += r.tax; eqTaxThisYr += r.tax;
     }
 
@@ -468,9 +527,10 @@ function simulateSWP(inp = state.inputs, opts = {}) {
     if ((yr % 3 === 0 || arbitrage < arbFloor) && eq > 0) {
       const target = arbFloor + totalOutflow * 3;
       if (arbitrage < target) {
-        const r = withdrawEquity(eq, eqCost, target - arbitrage, inp);
+        const r = withdrawEquity(eq, eqCost, target - arbitrage, inp, exemptionLeft);
         eq = r.rv; eqCost = r.rc;
         arbitrage += r.netCash; arbCost += r.netCash;
+        exemptionLeft = Math.max(0, exemptionLeft - r.gain);
         totalEqTax += r.tax; eqTaxThisYr += r.tax;
         rebalances++;
       }
@@ -532,16 +592,19 @@ function simulateAnnuity(inp = state.inputs) {
     totalFDTax += tax;
 
     const totalOutflow = annualExp + health + eventOut;
-    const incomeIn = net + pension + buffer * 0.05;  // buffer earns ~5%
+    // Buffer compounds at ~5% (post-tax) — its interest stays in the buffer.
+    // Treating it as income earlier double-counted the 5% (once as cash, once as growth).
+    const startBuffer = buffer;
     buffer *= 1.05;
-    let surplus = 0, shortfall = 0;
+    const incomeIn = net + pension;
+    let surplus = 0, shortfall = 0, fromBuffer = 0;
     if (incomeIn >= totalOutflow) {
       surplus = incomeIn - totalOutflow;
       buffer += surplus;
       totalSpent += totalOutflow;
     } else {
       shortfall = totalOutflow - incomeIn;
-      const fromBuffer = Math.min(shortfall, buffer);
+      fromBuffer = Math.min(shortfall, buffer);
       buffer -= fromBuffer;
       const stillShort = shortfall - fromBuffer;
       shortfallAccum += stillShort;
@@ -551,17 +614,18 @@ function simulateAnnuity(inp = state.inputs) {
     inflationFactor *= (1 + inp.inflation / 100);
     // Corpus locked in annuity — at death returns purchase price (modeled as final value).
     const total = inp.totalCorpus + buffer;
+    const startCorpus = inp.totalCorpus + startBuffer;
     years.push({
       yr, age,
       fdStart: inp.totalCorpus, eqStart: 0, gross, tax, net,
       pension, expense: annualExp, health, eventOut, eventItems, totalOutflow,
       monthlyExpense: annualExp / 12,
-      fdDraw: shortfall > 0 ? Math.min(shortfall, buffer + shortfall) : 0, surplus,
+      fdDraw: fromBuffer, surplus,
       fdEnd: total, eqEnd: 0,
       total, real: total / inflationFactor,
       rebalanced: false, eqTax: 0,
       lifestyleMult: lMult,
-      withdrawalRate: totalOutflow / Math.max(1, total),
+      withdrawalRate: totalOutflow / Math.max(1, startCorpus),
       eqReturn: 0,
       annuityRate, shortfall,
     });
@@ -1683,7 +1747,7 @@ const INFO_CONTENT = {
     title: 'How to use the inputs',
     body: `Every field is editable — type a number, drag the slider, or click a preset.
       <br><br><strong>Defaults illustrate a ₹6 Cr lumpsum at age 30 with ₹1 L/month expenses</strong>, 50/50 FD-equity allocation, FY 2025-26 slab tax. Change anything to match your situation.
-      <br><br>Your inputs are saved in <code>localStorage</code> on your device only — nothing leaves your browser.`,
+      <br><br>Your inputs are saved in <code>localStorage</code> on your device, so values persist between visits.`,
   },
   'strategy-user': {
     title: '50/50 FD + Equity (classic split)',

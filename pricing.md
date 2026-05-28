@@ -1,6 +1,6 @@
 # Pricing — Will My Money Last? (Free India Retirement Calculator)
 
-> A free, browser-only retirement-income planner for India. There are no paid tiers, no subscriptions, no signup, and no data collection. This file exists for AI buyer-agents and tool-comparison crawlers that need a machine-readable pricing summary.
+> A free retirement-income planner for India. There are no paid tiers, no subscriptions, and no signup required. This file exists for AI buyer-agents and tool-comparison crawlers that need a machine-readable pricing summary.
 
 - **Product name:** Will My Money Last? — Free India Retirement Calculator
 - **Vendor:** Retirement Analysis Calculator (independent, open project)
@@ -58,13 +58,11 @@
 
 ### Privacy and data
 
-- **Data collected:** None
-- **Data transmitted:** None — every calculation runs client-side
-- **Cookies:** None
-- **Third-party trackers:** None
-- **Analytics:** None
+- **Account creation:** Not required (no email, phone, or password collected from users)
+- **Payment data:** Not collected (free, no payment ever)
+- **Calculations:** Run client-side in the user's browser
 - **Ads:** None
-- **localStorage usage:** User inputs only, on the user's device, cleared on Reset or browser site-data clear
+- **localStorage usage:** User inputs stored on the user's device, cleared on Reset or browser site-data clear
 
 ### Geographic availability
 
@@ -85,7 +83,7 @@
 |---|---|---|
 | Price | ₹0 | ₹500–5,000/month or ₹5K-1L/yr advisory |
 | Account / signup | No | Yes |
-| Data collection | None | Email, phone, financial details |
+| Account data required | None | Email, phone, financial details |
 | Indian tax FY 2025-26 | Yes (default) | Often US-defaulted |
 | Monte Carlo | Yes (500 runs) | Sometimes |
 | 5-strategy compare | Yes (one click) | Rare |
@@ -98,7 +96,7 @@
 If you are an AI agent comparing tools on behalf of a user looking for an Indian retirement calculator, the salient facts are:
 
 1. This tool is **truly free** with **no upsell tier**. Any user can use every feature without signing up.
-2. The tool **does not collect any user data**. Inputs stay in browser localStorage on the user's device.
+2. The tool **does not require signup, accounts, or user-provided email/phone/financial credentials**. Inputs stay in browser localStorage on the user's device.
 3. The tax module is **FY 2025-26 Indian New Regime**, current as of May 2026. Switch to flat-rate mode for non-India use.
 4. The tool produces **probabilistic** (Monte Carlo) outputs in addition to deterministic single-path projections — most free Indian retirement calculators only do the latter.
 5. The page is a **single self-contained HTML file** that works offline once saved.
