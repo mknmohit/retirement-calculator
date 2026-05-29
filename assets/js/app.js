@@ -1033,7 +1033,6 @@ function renderAll() {
 
   renderHero(userSim);
   renderInputsFeedback();
-  renderEventsList();
   renderInflation();
   renderTrajectory(sims[state.activeStrategy]);
   renderCashflow(userSim);
@@ -1160,7 +1159,32 @@ function renderInputsFeedback() {
 }
 
 /* ─── Editable life-events list ─── */
-function renderEventsList() {
+let eventsHighlightTimer = null;
+
+function highlightEventRow(container, idx) {
+  if (eventsHighlightTimer) clearTimeout(eventsHighlightTimer);
+  container.querySelectorAll('.event-row-moved').forEach((r) => r.classList.remove('event-row-moved'));
+  const row = container.querySelector(`.event-row[data-idx="${idx}"]`);
+  if (!row) return;
+  void row.offsetWidth; // restart animation if moved again quickly
+  row.classList.add('event-row-moved');
+  eventsHighlightTimer = setTimeout(() => {
+    row.classList.remove('event-row-moved');
+    eventsHighlightTimer = null;
+  }, 1400);
+}
+
+function moveEvent(idx, direction) {
+  const arr = state.inputs.events;
+  const newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= arr.length) return;
+  const [moved] = arr.splice(idx, 1);
+  arr.splice(newIdx, 0, moved);
+  renderEventsList(newIdx);
+  saveState();
+}
+
+function renderEventsList(highlightIdx) {
   const inp = state.inputs;
   const container = document.getElementById('eventsRows');
   if (!container) return;
@@ -1168,9 +1192,13 @@ function renderEventsList() {
     container.innerHTML = `<div class="events-empty">No life events. Click "+ Add event" to schedule a one-off expense — kid's wedding, education, big medical, car, vacation, etc.</div>`;
     return;
   }
+  const lastIdx = inp.events.length - 1;
   container.innerHTML = inp.events.map((e, idx) => `
-    <div class="event-row" data-idx="${idx}" draggable="true">
-      <span class="drag-handle" title="Drag to reorder" aria-label="Drag handle">⋮⋮</span>
+    <div class="event-row" data-idx="${idx}">
+      <div class="event-reorder" role="group" aria-label="Reorder event">
+        <button type="button" class="event-move event-move-up" aria-label="Move up" title="Move up"${idx === 0 ? ' disabled' : ''}>↑</button>
+        <button type="button" class="event-move event-move-down" aria-label="Move down" title="Move down"${idx === lastIdx ? ' disabled' : ''}>↓</button>
+      </div>
       <input type="number" class="event-year" min="1" max="${inp.maxYears}" value="${e.year}" title="Year of the event (relative to start)" />
       <input type="number" class="event-amount" min="0" step="50000" value="${e.amount}" title="Amount in today's rupees" />
       <input type="text" class="event-label" placeholder="Description" value="${(e.label || '').replace(/"/g, '&quot;')}" />
@@ -1178,7 +1206,6 @@ function renderEventsList() {
     </div>
   `).join('');
 
-  // Wire each row's inputs
   container.querySelectorAll('.event-row').forEach(row => {
     const idx = +row.dataset.idx;
     row.querySelector('.event-year').addEventListener('input', e => {
@@ -1197,62 +1224,18 @@ function renderEventsList() {
     });
     row.querySelector('.event-delete').addEventListener('click', () => {
       state.inputs.events.splice(idx, 1);
+      renderEventsList();
       renderAll();
       saveState();
       markPresetActive(null);
     });
-
-    /* ── DRAG-AND-DROP WIRING ────────────────────────────────────── */
-    row.addEventListener('dragstart', (ev) => {
-      // Don't initiate drag if the user is interacting with an input field
-      const targetTag = (ev.target && ev.target.tagName) || '';
-      if (targetTag === 'INPUT' || targetTag === 'BUTTON') {
-        ev.preventDefault(); return;
-      }
-      ev.dataTransfer.effectAllowed = 'move';
-      ev.dataTransfer.setData('text/plain', String(idx));
-      row.classList.add('dragging');
-      // Hint for screen readers
-      row.setAttribute('aria-grabbed', 'true');
-    });
-    row.addEventListener('dragend', () => {
-      row.classList.remove('dragging');
-      row.removeAttribute('aria-grabbed');
-      container.querySelectorAll('.event-row').forEach(r => {
-        r.classList.remove('drag-over-top', 'drag-over-bottom');
-      });
-    });
-    row.addEventListener('dragover', (ev) => {
-      ev.preventDefault();
-      ev.dataTransfer.dropEffect = 'move';
-      const rect = row.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      row.classList.toggle('drag-over-top', ev.clientY < midY);
-      row.classList.toggle('drag-over-bottom', ev.clientY >= midY);
-    });
-    row.addEventListener('dragleave', () => {
-      row.classList.remove('drag-over-top', 'drag-over-bottom');
-    });
-    row.addEventListener('drop', (ev) => {
-      ev.preventDefault();
-      const fromIdx = parseInt(ev.dataTransfer.getData('text/plain'));
-      if (Number.isNaN(fromIdx) || fromIdx === idx) return;
-      const rect = row.getBoundingClientRect();
-      const midY = rect.top + rect.height / 2;
-      const before = ev.clientY < midY;
-      const arr = state.inputs.events;
-      const [moved] = arr.splice(fromIdx, 1);
-      // Account for index shift when source was before target
-      const insertAt = before
-        ? (fromIdx < idx ? idx - 1 : idx)
-        : (fromIdx < idx ? idx : idx + 1);
-      arr.splice(insertAt, 0, moved);
-      renderEventsList();
-      saveState();
-      // The simulation logic uses each event's `year` field, not list order,
-      // so we don't need to re-run the simulation here. Just persist + re-render.
-    });
+    row.querySelector('.event-move-up').addEventListener('click', () => moveEvent(idx, -1));
+    row.querySelector('.event-move-down').addEventListener('click', () => moveEvent(idx, 1));
   });
+
+  if (highlightIdx != null) {
+    requestAnimationFrame(() => highlightEventRow(container, highlightIdx));
+  }
 }
 
 /* ─── Inflation panel ─── */
@@ -1344,7 +1327,7 @@ function renderCashflow(sim) {
     { name: 'FD principal drawn', data: slice.map(y => +(y.fdDraw / 1e5).toFixed(2)), color: 'var(--danger)' },
   ];
   if (hasPension) series.push({ name: 'Pension/rental', data: slice.map(y => +((y.pension || 0) / 1e5).toFixed(2)), color: 'var(--chart-6)' });
-  if (hasEvents) series.push({ name: 'Life-event outflow', data: slice.map(y => +(y.eventOut / 1e5).toFixed(2)), color: 'var(--chart-3)' });
+  if (hasEvents) series.push({ name: 'Life-event outflow', data: slice.map(y => +(y.eventOut / 1e5).toFixed(2)), color: 'var(--chart-5)' });
 
   renderLineChart(document.getElementById('cashflowChart'), {
     categories: slice.map(y => `Y${y.yr}`),
@@ -1786,7 +1769,7 @@ const INFO_CONTENT = {
     body: `Big future expenses you want the model to plan for — child's wedding, MBA abroad, big medical, car replacement, international travel, hospitalisation reserve, etc.
       <br><br>Enter the amount in <strong>today's rupees</strong>; the calculator inflates it to future rupees automatically.
       <br><br>In the event year, the calculator subtracts the amount from your corpus — drawn first from FD, then from equity (with LTCG tax computed on the equity portion).
-      <br><br><strong>You can drag rows to reorder them</strong> — the order is just for your visual organisation; the actual scheduling comes from the "year" field.`,
+      <br><br><strong>Use the ↑ ↓ buttons to reorder rows</strong> — the order is just for your visual organisation; the actual scheduling comes from the "year" field.`,
   },
 
   /* ── Per-input help, prefixed "field-" ───────────────────────────────── */
@@ -1913,9 +1896,14 @@ const INFO_CONTENT = {
   },
   'field-spouse': {
     title: 'Spouse on board',
-    body: `Are you planning <strong>as a couple</strong>? Toggle ON if your spouse will also retire and you want joint scheme limits.
-      <br><br><strong>Biggest impact:</strong> the SCSS deposit cap doubles from ₹30 L → <strong>₹60 L</strong> (each spouse can hold ₹30 L individually). The SCSS-led strategy uses this automatically.
-      <br><br>This <em>does not</em> change expenses (set those to your <strong>combined household</strong> level) or tax slabs (each spouse files separately in real life — this is a single-corpus simulation).`,
+    body: `Are you planning <strong>as a couple</strong> where both spouses retire together?
+      <br><br><strong>What changes when ON:</strong><br>
+      • <strong>SCSS-led strategy only:</strong> deposit cap doubles ₹30 L → <strong>₹60 L</strong> (two ₹30 L slots). Other strategies do not add SCSS.<br>
+      • <strong>Tax (slab mode):</strong> interest and other income are split 50/50 across two filers — each gets their own ₹12 L §87A rebate and ₹50k §80TTB (if Senior is ON). Equity LTCG exemption doubles to ₹2.5 L/year.<br>
+      <br><br><strong>What does NOT change:</strong><br>
+      • Starting corpus stays <strong>one combined pool</strong> — not split into two accounts.<br>
+      • Monthly expense stays your <strong>combined household</strong> total — not halved.<br>
+      • If Senior is OFF, SCSS is still not age-gated in the model; use Senior + Spouse for the full couple benefit.`,
   },
   'field-startingAge': {
     title: 'Starting age',
@@ -2093,6 +2081,7 @@ function setupEvents() {
       const preset = btn.dataset.preset;
       state.inputs = { ...PRESETS[preset] };
       markPresetActive(preset);
+      renderEventsList();
       renderAll();
       saveState();
     });
@@ -2113,6 +2102,7 @@ function setupEvents() {
   document.getElementById('resetBtn').addEventListener('click', () => {
     state.inputs = { ...DEFAULTS };
     markPresetActive('base');
+    renderEventsList();
     renderAll();
     saveState();
   });
@@ -2123,6 +2113,7 @@ function setupEvents() {
     const nextId = events.reduce((m, e) => Math.max(m, e.id || 0), 0) + 1;
     const lastYear = events.length ? Math.max(...events.map(e => e.year || 0)) : 0;
     events.push({ id: nextId, year: Math.min(state.inputs.maxYears, lastYear + 3 || 5), amount: 1000000, label: 'New event' });
+    renderEventsList();
     renderAll();
     saveState();
     markPresetActive(null);
@@ -2135,6 +2126,7 @@ function setupEvents() {
   });
   document.getElementById('clearEventsBtn').addEventListener('click', () => {
     state.inputs.events = [];
+    renderEventsList();
     renderAll();
     saveState();
     markPresetActive(null);
@@ -2246,6 +2238,7 @@ function boot() {
   const yearEl = document.getElementById('brandYear');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
   // Render UI
+  renderEventsList();
   renderAll();
 }
 

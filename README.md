@@ -19,7 +19,7 @@ Live: **https://retirement.techdevix.com/**
 - **Spouse tax-splitting** — each filer's own 87A and 80TTB; doubles the SCSS ceiling
 - Separate **healthcare inflation** rate (default 12%)
 - **Lifestyle expense bands** by age (65–75, 75+)
-- **One-off life events** — weddings, education, medical, travel, car (drag to reorder)
+- **One-off life events** — weddings, education, medical, travel, car (↑ ↓ to reorder)
 - **Pension and rental income**, optionally inflation-indexed
 - **Bequest / legacy** goal tracking
 - **Withdrawal-rate** chart against the 4% safe-rate baseline

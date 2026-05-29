@@ -46,7 +46,7 @@
 - Spouse tax-splitting (each filer's own 87A and 80TTB)
 - Separate healthcare inflation rate (default 12%)
 - Lifestyle expense bands by age (65–75, 75+)
-- One-off life events (weddings, education, medical, travel, car) with drag-reorder
+- One-off life events (weddings, education, medical, travel, car) with ↑ ↓ reorder
 - Pension and rental income with optional inflation indexing
 - Bequest / legacy goal tracking
 - Withdrawal-rate visualisation against the 4% safe rate baseline
