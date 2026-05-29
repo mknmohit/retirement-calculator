@@ -9,7 +9,7 @@
   <!-- Single-page application: one canonical URL, multiple language variants. -->
   <url>
     <loc>https://retirement.techdevix.com/</loc>
-    <lastmod>2026-05-29</lastmod>
+    <lastmod>2026-05-30</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
 
@@ -22,7 +22,7 @@
     <image:image>
       <image:loc>https://retirement.techdevix.com/og-image.jpg</image:loc>
       <image:title>Will My Money Last? — Free India Retirement Calculator</image:title>
-      <image:caption>Year-by-year projection of when your retirement savings run out, under FY 2025-26 Indian tax law and Monte Carlo equity volatility.</image:caption>
+      <image:caption>Year-by-year projection of how long a lumpsum lasts and when your retirement savings run out, under FY 2025-26 Indian tax law and Monte Carlo equity volatility.</image:caption>
     </image:image>
     <image:image>
       <image:loc>https://retirement.techdevix.com/favicon.svg</image:loc>

@@ -1,5 +1,5 @@
 /*!
- * Will My Money Last - Retirement Calculator India
+ * Will My Money Last - India Retirement Drawdown (Decumulation) Calculator
  * Application logic (extracted from inline <script> to enable caching and defer execution)
  * No SEO impact - all SEO content (meta tags, JSON-LD, microdata) remains in HTML.
  * Loaded with `defer` to avoid render-blocking; runs after DOM is parsed.
@@ -839,8 +839,9 @@ function smoothPath(points) {
 }
 
 function renderLineChart(container, opts) {
-  const { categories, series, height = 320, valueSuffix = '', filled = false, formatTooltip } = opts;
+  const { categories, series, height = 320, valueSuffix = '', filled = false, formatTooltip, ariaLabel = '' } = opts;
   if (!container || categories.length === 0) return;
+  const chartDesc = ariaLabel || series.map(s => s.name).filter(Boolean).join(', ');
   const width = Math.max(320, container.parentElement.clientWidth - 36);
   const padding = { top: 16, right: 16, bottom: 36, left: 60 };
   const innerW = width - padding.left - padding.right;
@@ -905,7 +906,7 @@ function renderLineChart(container, opts) {
   const cursor = `<line id="cursor-${container.id}" class="chart-cursor" x1="0" y1="${padding.top}" x2="0" y2="${padding.top + innerH}"/>`;
 
   container.innerHTML = `
-    <svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+    <svg class="chart-svg" role="img" aria-label="${chartDesc.replace(/"/g, '&quot;')}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
       ${ticks}
       ${paths}
       ${dots}
@@ -946,8 +947,9 @@ function fmtTick(v, suffix) {
 }
 
 function renderBarChart(container, opts) {
-  const { categories, series, height = 240, valueSuffix = '', formatTooltip } = opts;
+  const { categories, series, height = 240, valueSuffix = '', formatTooltip, ariaLabel = '' } = opts;
   if (!container || categories.length === 0) return;
+  const chartDesc = ariaLabel || series.map(s => s.name).filter(Boolean).join(', ');
   const width = Math.max(280, container.parentElement.clientWidth - 36);
   const padding = { top: 12, right: 12, bottom: 50, left: 56 };
   const innerW = width - padding.left - padding.right;
@@ -995,7 +997,7 @@ function renderBarChart(container, opts) {
   });
 
   container.innerHTML = `
-    <svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+    <svg class="chart-svg" role="img" aria-label="${chartDesc.replace(/"/g, '&quot;')}" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
       ${ticks}
       ${bars}
       ${hoverZones}
@@ -1202,7 +1204,7 @@ function renderHero(sim) {
   }
   verdict.className = 'callout callout-' + tone;
   const icons = { success: '✓', info: 'i', warning: '!', danger: '×' };
-  verdict.innerHTML = `<div class="callout-icon">${icons[tone]}</div>
+  verdict.innerHTML = `<div class="callout-icon" aria-hidden="true">${icons[tone]}</div>
     <div class="callout-body"><div class="callout-title">${title}</div>${body}</div>`;
 
   // Sync the floating result dock — leads with plan coverage (the headline answer)
@@ -1226,13 +1228,48 @@ function renderHero(sim) {
 }
 
 /* ─── Inputs feedback (helper text under sliders) ─── */
+function syncMethodPresets(fdPct) {
+  document.querySelectorAll('.method-preset').forEach(btn => {
+    const p = parseInt(btn.dataset.fdPct, 10);
+    const on = p === fdPct;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+
+function renderMethodSplit(inp = state.inputs) {
+  const fdPct = Math.max(0, Math.min(100, inp.fdPercent));
+  const eqPct = 100 - fdPct;
+  const fdAmt = inp.totalCorpus * fdPct / 100;
+  const eqAmt = inp.totalCorpus - fdAmt;
+  const fdPctEl = document.getElementById('methodFdPct');
+  if (!fdPctEl) return;
+  const eqPctEl = document.getElementById('methodEqPct');
+  const fdAmtEl = document.getElementById('methodFdAmt');
+  const eqAmtEl = document.getElementById('methodEqAmt');
+  if (fdPctEl) fdPctEl.textContent = `${fdPct}%`;
+  if (eqPctEl) eqPctEl.textContent = `${eqPct}%`;
+  if (fdAmtEl) fdAmtEl.textContent = fmtCr(fdAmt);
+  if (eqAmtEl) eqAmtEl.textContent = fmtCr(eqAmt);
+  const trackFdPct = document.getElementById('trackFdPct');
+  const trackEqPct = document.getElementById('trackEqPct');
+  if (trackFdPct) trackFdPct.textContent = `${fdPct}%`;
+  if (trackEqPct) trackEqPct.textContent = `${eqPct}%`;
+  const hint = document.getElementById('fdPercentHint');
+  if (hint) hint.textContent = `${fdPct}% in bank or FD (${fmtCr(fdAmt)}), ${eqPct}% in stocks (${fmtCr(eqAmt)})`;
+  const rangeWrap = document.getElementById('planSplitRange');
+  if (rangeWrap) rangeWrap.style.setProperty('--fd-pct', `${fdPct}%`);
+  syncMethodPresets(fdPct);
+}
+
 function renderInputsFeedback() {
   const inp = state.inputs;
   document.getElementById('totalCorpusHint').textContent = fmtCr(inp.totalCorpus);
-  const fdAmt = inp.totalCorpus * inp.fdPercent / 100;
-  document.getElementById('fdPercentHint').textContent = `${inp.fdPercent}% safe ${fmtCr(fdAmt)} · ${100 - inp.fdPercent}% stocks ${fmtCr(inp.totalCorpus - fdAmt)}`;
+  renderMethodSplit(inp);
   const yr10 = inp.monthlyExpense * Math.pow(1 + inp.inflation/100, 9);
   document.getElementById('monthlyExpenseHint').textContent = `Now ${fmtL(inp.monthlyExpense)}/m → in 10 yrs ${fmtL(yr10)}/m`;
+  const maxYearsHint = document.getElementById('maxYearsHint');
+  if (maxYearsHint) maxYearsHint.textContent = `${inp.maxYears} yrs → through age ${inp.startingAge + inp.maxYears}`;
   const bequestHint = document.getElementById('bequestHint');
   if (bequestHint) bequestHint.textContent = inp.bequestGoal > 0 ? `that's ${fmtCr(inp.bequestGoal * Math.pow(1 + inp.inflation/100, inp.maxYears))} in year ${inp.maxYears}` : "today's money (0 = none)";
 
@@ -1303,9 +1340,9 @@ function renderEventsList(highlightIdx) {
         <button type="button" class="event-move event-move-up" aria-label="Move up" title="Move up"${idx === 0 ? ' disabled' : ''}>↑</button>
         <button type="button" class="event-move event-move-down" aria-label="Move down" title="Move down"${idx === lastIdx ? ' disabled' : ''}>↓</button>
       </div>
-      <input type="number" class="event-year" min="1" max="${inp.maxYears}" value="${e.year}" title="Year of the event (relative to start)" />
-      <input type="number" class="event-amount" min="0" step="50000" value="${e.amount}" title="Amount in today's rupees" />
-      <input type="text" class="event-label" placeholder="Description" value="${(e.label || '').replace(/"/g, '&quot;')}" />
+      <input type="number" class="event-year" min="1" max="${inp.maxYears}" value="${e.year}" aria-label="Year of one-off cost" autocomplete="off" />
+      <input type="number" class="event-amount" min="0" step="50000" value="${e.amount}" aria-label="Amount in today's rupees" autocomplete="off" />
+      <input type="text" class="event-label" placeholder="Description" value="${(e.label || '').replace(/"/g, '&quot;')}" aria-label="Description of one-off cost" autocomplete="off" />
       <button type="button" class="event-delete" aria-label="Delete event" title="Delete this event">×</button>
     </div>
   `).join('');
@@ -1395,6 +1432,7 @@ function renderInflation() {
     height: 240,
     valueSuffix: ' L',
     filled: true,
+    ariaLabel: 'Monthly spending rising with inflation, year by year',
     formatTooltip: (v) => '₹' + v.toFixed(2) + ' L/m',
   });
 }
@@ -1414,6 +1452,7 @@ function renderTrajectory(sim) {
       { name: "Total (today's value)", data: sampled.map(y => +(y.real / 1e7).toFixed(2)), color: 'var(--chart-4)' },
     ],
     height: 360, valueSuffix: ' Cr',
+    ariaLabel: 'Savings trajectory — safe savings, stocks, and total over time',
     formatTooltip: (v) => '₹' + v.toFixed(2) + ' Cr',
   });
 }
@@ -1437,6 +1476,7 @@ function renderCashflow(sim) {
     categories: slice.map(y => `Y${y.yr}`),
     series,
     height: 320, valueSuffix: ' L',
+    ariaLabel: 'Yearly cashflow — interest, spending, and withdrawals',
     formatTooltip: (v) => '₹' + v.toFixed(2) + ' L',
   });
 }
@@ -1515,12 +1555,14 @@ function renderComparison(sims) {
     categories: cats,
     series: [{ name: 'Years lasted', data: STR.map(s => sims[s.key].yearsLasted >= sims[s.key].maxYears ? sims[s.key].maxYears : sims[s.key].yearsLasted), color: 'var(--chart-1)' }],
     height: 220, valueSuffix: ' yrs',
+    ariaLabel: 'Years each retirement plan lasts',
     formatTooltip: (v) => `${Math.round(v)} years`,
   });
   renderBarChart(document.getElementById('compareCorpusChart'), {
     categories: cats,
     series: [{ name: 'Real corpus (₹ Cr)', data: STR.map(s => +(sims[s.key].finalReal / 1e7).toFixed(2)), color: 'var(--chart-2)' }],
     height: 220, valueSuffix: ' Cr',
+    ariaLabel: 'Money left at the end of each plan, in today\'s value',
     formatTooltip: (v) => fmtCr(v * 1e7),
   });
 
@@ -1602,6 +1644,7 @@ function renderRiskAnalysis(deterministicSim) {
     height: 280,
     valueSuffix: '%',
     filled: true,
+    ariaLabel: 'Chance your money is still there each year, across 500 market simulations',
     formatTooltip: v => v.toFixed(1) + '% of runs',
   });
 
@@ -1615,6 +1658,7 @@ function renderRiskAnalysis(deterministicSim) {
     ],
     height: 280,
     valueSuffix: ' Cr',
+    ariaLabel: 'Range of outcomes — good, middle, and bad cases in today\'s value',
     formatTooltip: v => '₹' + v.toFixed(2) + ' Cr',
   });
 
@@ -1638,6 +1682,7 @@ function renderRiskAnalysis(deterministicSim) {
     series: [{ name: 'Number of runs', data: counts, color: 'var(--chart-6)' }],
     height: 240,
     valueSuffix: '',
+    ariaLabel: 'Distribution of final outcomes across 500 simulations',
     formatTooltip: v => Math.round(v) + ' runs',
   });
 
@@ -1659,7 +1704,9 @@ function renderRiskAnalysis(deterministicSim) {
   }
   interp.className = 'callout callout-' + tone;
   const icons = { success: '✓', info: 'i', warning: '!', danger: '×' };
-  interp.innerHTML = `<div class="callout-icon">${icons[tone]}</div>
+  interp.setAttribute('role', 'status');
+  interp.setAttribute('aria-live', 'polite');
+  interp.innerHTML = `<div class="callout-icon" aria-hidden="true">${icons[tone]}</div>
     <div class="callout-body"><div class="callout-title">${title}</div>${body}</div>`;
 }
 
@@ -1676,6 +1723,7 @@ function renderWithdrawalChart(sim) {
     ],
     height: 280,
     valueSuffix: '%',
+    ariaLabel: 'Withdrawal rate each year compared with the 4% safe level',
     formatTooltip: v => v.toFixed(2) + '%',
   });
 }
@@ -1844,7 +1892,9 @@ const INFO_CONTENT = {
   },
   'inputs-overview': {
     title: 'How to use this',
-    body: `Every box can be changed — type a number, drag the slider, or tap one of the buttons at the top to set everything at once.
+    body: `This tool starts from money you <strong>already have</strong> and shows how long it lasts — it's a drawdown calculator, not a "how much should I save" one.
+      <br><br><strong>What it models:</strong> split savings between bank/FD and stocks; live on FD interest first; sell stocks when needed; when the FD side is nearly empty, move half your stocks back into FD and repeat — with Indian tax and inflation, year by year.
+      <br><br>Every box can be changed — type a number, drag the slider, or tap one of the buttons at the top to set everything at once.
       <br><br><strong>The starting example shows ₹6 Crore at age 30, spending ₹1 Lakh a month</strong>, with half kept safe and half in the stock market. Change anything to match your own life.
       <br><br>Your numbers are saved on your own device, so they're still here next time you visit.`,
   },
@@ -1895,22 +1945,24 @@ const INFO_CONTENT = {
       <br><br><strong>The example uses ₹6 Crore</strong> — roughly what a big-city couple needs for about 25 years at ₹1 Lakh a month. Change it to your actual amount.`,
   },
   'field-fdPercent': {
-    title: 'FD & Stock Market Allocation',
-    body: `How much of your money you keep in <strong>safe places</strong> (bank deposits, post office, the senior scheme). The rest goes into the <strong>stock market</strong> (index funds or large mutual funds).
-      <br><br>More kept safe = steadier, but lower growth, so your money may not keep up with rising prices.<br>
-      Less kept safe = more growth, but bigger ups and downs (and more danger if the market drops early in retirement).
-      <br><br><strong>A simple rule:</strong> "100 minus your age = the % to keep in stocks". So at 60, about 40% stocks and 60% safe. At 30, about 70% stocks and 30% safe.`,
+    title: 'Bank FD vs Stocks Allocation',
+    body: `How much of your <strong>total savings</strong> stays in <strong>bank/FD</strong> vs <strong>stocks</strong>. This is the starting point for the whole calculator.
+      <br><br><strong>Bank/FD half:</strong> pays your bills from interest first (then from the deposit if needed).<br>
+      <strong>Stocks half:</strong> grows in the background and refills the bank side when it runs low.
+      <br><br>More in bank = steadier income, but less long-term growth. More in stocks = higher growth, but bigger ups and downs.
+      <br><br><strong>Rule of thumb:</strong> "100 minus your age" ≈ % in stocks (at 60 → ~40% stocks / 60% bank; at 30 → ~70% stocks / 30% bank).`,
   },
   'field-maxYears': {
-    title: 'How many years to plan',
-    body: `How far into the future to run the plan.
-      <br><br><strong>50 years</strong> covers most realistic retirements (for example, retire at 60 and plan all the way to 110 — well beyond what most people reach).
-      <br><br>Set it higher if you're retiring very early and want to test 70+ years; lower for a shorter, more cautious check.
-      <br><br>The "Years your money lasts" number can't go past this — "50+" means your money survived the whole window.`,
+    title: 'Years to plan for',
+    body: `How many <strong>years forward</strong> from your age now the tool should run — not the age you plan to retire.
+      <br><br><strong>Your age now + this number</strong> is the age you plan through (see the hint next to the slider). Example: age <strong>30</strong> and <strong>50 years</strong> → through age <strong>80</strong>.
+      <br><br><strong>50 years</strong> is a sensible default — long enough for early retirement and living well past 90.
+      <br><br>Go higher to stress-test a very long life; lower for a quicker check.
+      <br><br>"Years your money lasts" can't exceed this — <strong>50+</strong> means your money survived the whole window.`,
   },
   'field-fdRate': {
     title: 'Interest on savings (bank/FD) per year',
-    body: `The interest your <strong>safe money</strong> earns each year. Use a typical bank or post-office deposit rate.
+    body: `The yearly return on the <strong>bank/FD half</strong> of your split. The calculator spends this interest (after tax) toward your living costs before touching the deposit principal or selling stocks.
       <br><br><strong>May 2026 examples:</strong> SBI 5-year deposit ~6.5% · HDFC ~7.0% · post office 5-year ~7.5% · <strong>senior citizens' scheme 8.2%</strong> (age 60+ only).
       <br><br>This interest is taxed based on the tax setting you choose. For an extra-careful plan, you can enter a lower, after-tax number yourself.`,
   },
@@ -2052,25 +2104,31 @@ function showInfoPopover(btn) {
   const popover = document.getElementById('infoPopover');
   if (!popover || !content) return;
   popover.innerHTML = `
-    <div class="info-popover-title">
+    <div class="info-popover-title" id="infoPopoverTitle">
       <span>${content.title}</span>
-      <button class="info-popover-close" aria-label="Close">×</button>
+      <button type="button" class="info-popover-close" aria-label="Close help">×</button>
     </div>
     <div class="info-popover-body">${content.body}</div>
   `;
   popover.classList.add('show');
   popover.setAttribute('aria-hidden', 'false');
+  popover.setAttribute('aria-labelledby', 'infoPopoverTitle');
   positionPopover(btn, popover);
   openInfoBtn = btn;
-  popover.querySelector('.info-popover-close').addEventListener('click', hideInfoPopover);
+  const closeBtn = popover.querySelector('.info-popover-close');
+  closeBtn.addEventListener('click', hideInfoPopover);
+  closeBtn.focus();
 }
 
 function hideInfoPopover() {
   const popover = document.getElementById('infoPopover');
+  const returnFocus = openInfoBtn;
   if (!popover) return;
   popover.classList.remove('show');
   popover.setAttribute('aria-hidden', 'true');
+  popover.removeAttribute('aria-labelledby');
   openInfoBtn = null;
+  if (returnFocus && typeof returnFocus.focus === 'function') returnFocus.focus();
 }
 
 function positionPopover(anchor, popover) {
@@ -2152,7 +2210,44 @@ function setupInfoButtons() {
 /* ════════════════════════════════════════════════════════════════════════
    EVENT WIRING
    ════════════════════════════════════════════════════════════════════════ */
+/** Wire range sliders and number fields to visible labels; disable password-manager heuristics. */
+function setupInputA11y() {
+  document.querySelectorAll('.input-field').forEach(field => {
+    const labelText = field.querySelector('.input-label-text');
+    const range = field.querySelector('input[type="range"]');
+    const num = field.querySelector('input[type="number"]');
+    const text = labelText
+      ? labelText.textContent.replace(/\s*ⓘ\s*/g, ' ').replace(/\s+/g, ' ').trim()
+      : '';
+    if (range && text) range.setAttribute('aria-label', text);
+    [range, num].forEach(el => {
+      if (!el) return;
+      el.setAttribute('autocomplete', 'off');
+      if (num && !num.getAttribute('name') && num.id) num.setAttribute('name', num.id);
+    });
+  });
+  const pensionInflated = document.getElementById('pensionInflated');
+  if (pensionInflated) {
+    pensionInflated.setAttribute('aria-label', 'Pension or rent grows with inflation');
+    pensionInflated.setAttribute('name', 'pensionInflated');
+  }
+}
+
+function setupPlanSplitRange() {
+  const wrap = document.getElementById('planSplitRange');
+  const range = document.getElementById('fdPercentRange');
+  if (!wrap || !range) return;
+  const startDrag = () => wrap.classList.add('is-dragging');
+  const endDrag = () => wrap.classList.remove('is-dragging');
+  range.addEventListener('pointerdown', startDrag);
+  range.addEventListener('pointerup', endDrag);
+  range.addEventListener('pointercancel', endDrag);
+  range.addEventListener('lostpointercapture', endDrag);
+  window.addEventListener('pointerup', endDrag);
+}
+
 function setupEvents() {
+  setupInputA11y();
   // Inputs — sync slider <-> number pairs
   const PAIRS = [
     'totalCorpus', 'fdPercent', 'fdRate', 'equityRate', 'equityVolatility',
@@ -2170,12 +2265,15 @@ function setupEvents() {
       state.inputs[k] = n;
       if (num.value != n) num.value = n;
       if (range.value != n) range.value = n;
+      if (k === 'fdPercent' || k === 'totalCorpus') renderMethodSplit(state.inputs);
       scheduleUpdate();
       markPresetActive(null);
     }
     num.addEventListener('input', e => update(e.target.value));
     range.addEventListener('input', e => update(e.target.value));
   });
+
+  setupPlanSplitRange();
 
   // Boolean toggles
   ['isSenior', 'spouse', 'pensionInflated', 'taxHarvesting'].forEach(k => {
@@ -2196,10 +2294,26 @@ function setupEvents() {
     });
   });
 
-  // Presets
-  document.querySelectorAll('.preset-chip').forEach(btn => {
+  document.querySelectorAll('.method-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pct = parseInt(btn.dataset.fdPct, 10);
+      if (!Number.isFinite(pct)) return;
+      state.inputs.fdPercent = pct;
+      const num = document.getElementById('fdPercent');
+      const range = document.getElementById('fdPercentRange');
+      if (num) num.value = pct;
+      if (range) range.value = pct;
+      renderMethodSplit(state.inputs);
+      scheduleUpdate();
+      markPresetActive(null);
+    });
+  });
+
+  // Scenario presets (top bar only — not plan-split chips)
+  document.querySelectorAll('.preset-chip[data-preset]').forEach(btn => {
     btn.addEventListener('click', () => {
       const preset = btn.dataset.preset;
+      if (!PRESETS[preset]) return;
       state.inputs = { ...PRESETS[preset] };
       markPresetActive(preset);
       renderEventsList();
@@ -2211,11 +2325,18 @@ function setupEvents() {
   // Strategy tabs
   document.querySelectorAll('#strategyTabs .tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('#strategyTabs .tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      state.activeStrategy = tab.dataset.strategy;
-      const sim = ({ user: simulateUserStrategy, improved: simulateImproved, swp: simulateSWP, pureFD: simulatePureFD, annuity: simulateAnnuity }[state.activeStrategy])();
-      renderTrajectory(sim);
+      activateStrategyTab(tab);
+    });
+    tab.addEventListener('keydown', (e) => {
+      const tabs = [...document.querySelectorAll('#strategyTabs .tab')];
+      const i = tabs.indexOf(tab);
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        activateStrategyTab(tabs[(i + 1) % tabs.length]);
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        activateStrategyTab(tabs[(i - 1 + tabs.length) % tabs.length]);
+      }
     });
   });
 
@@ -2284,9 +2405,27 @@ function scheduleUpdate() {
   updateT = setTimeout(() => { renderAll(); saveState(); }, 50);
 }
 
+function activateStrategyTab(tab) {
+  if (!tab) return;
+  document.querySelectorAll('#strategyTabs .tab').forEach(t => {
+    const on = t === tab;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+    t.tabIndex = on ? 0 : -1;
+  });
+  const panel = document.getElementById('trajectory-panel');
+  if (panel) panel.setAttribute('aria-labelledby', tab.id);
+  tab.focus();
+  state.activeStrategy = tab.dataset.strategy;
+  const sim = ({ user: simulateUserStrategy, improved: simulateImproved, swp: simulateSWP, pureFD: simulatePureFD, annuity: simulateAnnuity }[state.activeStrategy])();
+  renderTrajectory(sim);
+}
+
 function markPresetActive(preset) {
-  document.querySelectorAll('.preset-chip').forEach(c => {
-    c.classList.toggle('active', c.dataset.preset === preset);
+  document.querySelectorAll('.preset-chip[data-preset]').forEach(c => {
+    const on = c.dataset.preset === preset;
+    c.classList.toggle('active', on);
+    c.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
 }
 
@@ -2359,6 +2498,8 @@ function applyMode(mode) {
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   });
   updateModeNudge();
+  const reveal = document.getElementById('advReveal');
+  if (reveal) reveal.setAttribute('aria-expanded', mode === 'advanced' ? 'true' : 'false');
 }
 
 function setMode(mode, opts = {}) {
@@ -2663,6 +2804,49 @@ function setupShowMore() {
   document.querySelectorAll('[data-show-more]').forEach(initShowMore);
 }
 
+/** Smooth collapse for plan-split <details> when CSS allow-discrete is unavailable. */
+function setupPlanSplitDetails() {
+  const cssCollapse =
+    CSS.supports('transition-behavior', 'allow-discrete')
+    && CSS.supports('interpolate-size', 'allow-keywords');
+  if (cssCollapse) return;
+
+  document.querySelectorAll('.plan-split-details').forEach(details => {
+    const summary = details.querySelector('summary');
+    const panel = details.querySelector('.plan-split-example');
+    if (!summary || !panel) return;
+
+    summary.addEventListener('click', (e) => {
+      if (!details.open) return;
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      e.preventDefault();
+      const startH = panel.scrollHeight;
+      panel.style.overflow = 'hidden';
+      panel.style.height = startH + 'px';
+      void panel.offsetHeight;
+      panel.style.transition = 'height 0.35s ease, opacity 0.2s ease';
+      panel.style.opacity = '0';
+      panel.style.height = '0';
+
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        details.open = false;
+        panel.style.transition = '';
+        panel.style.height = '';
+        panel.style.overflow = '';
+        panel.style.opacity = '';
+      };
+      panel.addEventListener('transitionend', (ev) => {
+        if (ev.propertyName === 'height') finish();
+      });
+      setTimeout(finish, 450);
+    });
+  });
+}
+
 function initShowMore(wrap) {
   const list = document.querySelector(wrap.dataset.target || '');
   const itemSel = wrap.dataset.item;
@@ -2813,7 +2997,12 @@ function boot() {
   setupInfoButtons();
   setupFAQ();
   setupShowMore();
+  setupPlanSplitDetails();
   setupResultDock();
+  // Strategy tabs: roving tabindex on first paint
+  document.querySelectorAll('#strategyTabs .tab').forEach(t => {
+    t.tabIndex = t.classList.contains('active') ? 0 : -1;
+  });
   // Dynamic year in brand subtitle
   const yearEl = document.getElementById('brandYear');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -2826,6 +3015,7 @@ function boot() {
   applyMode(state.mode);
   // Render UI
   renderEventsList();
+  markPresetActive('base');
   renderAll();
   // Re-enable the reveal animation once the first frame has painted
   requestAnimationFrame(() => requestAnimationFrame(() => {

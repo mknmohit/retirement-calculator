@@ -78,7 +78,7 @@
 
     { kind: 'section', label: 'Goals & timeline' },
     { kind: 'input', name: 'BEQUEST',        label: "Money to leave for family (today's ₹)", key: 'bequestGoal',    fmt: 'inr',  note: "What you'd like to leave behind; 0 = none." },
-    { kind: 'input', name: 'MAX_YEARS',      label: 'How many years to plan',           key: 'maxYears',            fmt: 'int',  note: "50 years by default." },
+    { kind: 'input', name: 'MAX_YEARS',      label: 'Years to plan for',                key: 'maxYears',            fmt: 'int',  note: "Years forward from your age now (default 50)." },
   ];
 
   const NUM_FMT = {

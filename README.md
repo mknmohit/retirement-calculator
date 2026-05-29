@@ -1,6 +1,6 @@
-# Will My Money Last? — Free India Retirement Calculator
+# Will My Money Last? — Free India Retirement Calculator ("How Long Will My Money Last?")
 
-A free retirement-income planner for India. Type your savings, monthly expense, and age, and see year-by-year exactly when your money runs out — under FY 2025-26 New Regime tax, 6% inflation, 12% healthcare inflation, and a 500-run Monte Carlo on equity volatility. Five drawdown strategies are compared side-by-side: Pure FD, 50/50 FD+Equity, SCSS-led, Arbitrage + SWP, and Lifetime Annuity.
+A free India retirement calculator that answers one question: **"how long will my money last?"** (also called a retirement **drawdown / decumulation** calculator). It starts from a lumpsum you *already have* — a retirement payout, savings, a property/business sale, or an inheritance — **not** how much you still need to save. Type your savings, monthly expense, and age, and it plays your money forward year by year to show exactly how many years it lasts and when it runs out — under FY 2025-26 New Regime tax, 6% inflation, 12% healthcare inflation, and a 500-run Monte Carlo on equity volatility. Five drawdown strategies are compared side-by-side: Pure FD, 50/50 FD+Equity, SCSS-led, Arbitrage + SWP, and Lifetime Annuity.
 
 Live: **https://retirement.techdevix.com/**
 

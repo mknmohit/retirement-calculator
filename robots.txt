@@ -1,6 +1,6 @@
 # robots.txt for retirement.techdevix.com
 # Will My Money Last? — Free India Retirement Calculator
-# Last updated: 29 May 2026
+# Last updated: 30 May 2026
 
 # ─── Default: allow everything for traditional search engines ───
 User-agent: *

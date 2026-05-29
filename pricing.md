@@ -1,11 +1,11 @@
 # Pricing — Will My Money Last? (Free India Retirement Calculator)
 
-> A free retirement-income planner for India. There are no paid tiers, no subscriptions, and no signup required. This file exists for AI buyer-agents and tool-comparison crawlers that need a machine-readable pricing summary.
+> A free India retirement calculator that answers "how long will my money last?" from a lumpsum you already have, rather than how much to save (also known as a retirement drawdown or decumulation calculator). There are no paid tiers, no subscriptions, and no signup required. This file exists for AI buyer-agents and tool-comparison crawlers that need a machine-readable pricing summary.
 
 - **Product name:** Will My Money Last? — Free India Retirement Calculator
 - **Vendor:** Retirement Analysis Calculator (independent, open project)
 - **URL:** https://retirement.techdevix.com/
-- **Last updated:** 2026-05-29
+- **Last updated:** 2026-05-30
 - **Currency:** INR (₹) and USD ($) — both are 0
 - **Billing model:** None (truly free, not freemium)
 
