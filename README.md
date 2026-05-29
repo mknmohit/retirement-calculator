@@ -16,6 +16,7 @@ Live: **https://retirement.techdevix.com/**
 - **FY 2025-26 New Regime tax** — Section 87A rebate (₹12 L), marginal relief, surcharge 10–25%, 4% cess
 - **Section 80TTB** ₹50K senior-citizen interest deduction
 - **LTCG** 12.5% with ₹1.25 L annual exemption (Finance Act 2024)
+- **LTCG harvesting** — optional annual sell-and-rebuy to crystallise gains up to the yearly exemption (cost-basis step-up, zero tax, zero risk)
 - **Spouse tax-splitting** — each filer's own 87A and 80TTB; doubles the SCSS ceiling
 - Separate **healthcare inflation** rate (default 12%)
 - **Lifestyle expense bands** by age (65–75, 75+)
@@ -23,7 +24,11 @@ Live: **https://retirement.techdevix.com/**
 - **Pension and rental income**, optionally inflation-indexed
 - **Bequest / legacy** goal tracking
 - **Withdrawal-rate** chart against the 4% safe-rate baseline
-- **CSV export** of the full year-by-year ledger
+- **Excel (XLSX) export** — multi-sheet workbook with **live formulas**; the
+  Inputs tab is editable and every projection (50/50, SCSS-led, Pure FD, SWP,
+  Annuity) recalculates inside Excel / Google Sheets. Tax slabs, §87A,
+  surcharge, LTCG harvesting, and SCSS-locked-bucket accounting are implemented
+  as workbook-level LAMBDAs and named ranges.
 - Light and dark themes; fully responsive
 - **PWA** / Add-to-Home-Screen support
 
@@ -51,23 +56,25 @@ All defaults are user-editable in the UI.
 ```
 .
 ├── index.html                          # The calculator (production filename)
+├── assets/
+│   ├── css/styles.css                  # Stylesheet
+│   ├── js/app.js                       # Calculator engine + UI
+│   ├── js/xlsx-export.js               # Multi-sheet Excel workbook builder
+│   ├── vendor/xlsx.full.min.js         # SheetJS (Apache 2.0, vendored)
+│   └── vendor/SHEETJS-LICENSE.txt      # SheetJS license (Apache 2.0)
 ├── llms.txt                            # llmstxt.org-style site context for LLMs
 ├── pricing.md                          # Machine-readable pricing (free, no signup)
 ├── robots.txt                          # Crawl directives + AI-bot allowlist
 ├── sitemap.xml                         # XML sitemap (hreflang + image)
 ├── site.webmanifest                    # PWA manifest
-├── favicon.ico
-├── favicon.svg
-├── apple-touch-icon.png
-├── android-chrome-192x192.png
-├── android-chrome-512x512.png
+├── favicon.ico  favicon.svg  apple-touch-icon.png  android-chrome-*.png
 ├── maskable-icon-512x512.png
 ├── og-image.jpg                        # 1200×800 social-preview image
 ├── README.md
 └── .gitignore
 ```
 
-The calculator is fully self-contained — HTML, CSS, and JS in a single file. No build step, no bundler, no external runtime dependencies.
+The calculator is fully self-contained — HTML, CSS, and JS served as static files. No build step, no bundler, no runtime dependencies.
 
 ## Run locally
 
@@ -93,7 +100,9 @@ Currently deployed at `retirement.techdevix.com`.
 
 ## Methodology and limitations
 
-**Methodology.** Year-by-year deterministic simulation for the four named strategies, plus a 500-run Monte Carlo with normal-distribution equity returns clamped at -55%. Tax module: FY 2025-26 New Regime with Section 87A rebate (incl. marginal relief), 4% cess, 10–25% surcharge, Section 80TTB (₹50K for 60+), and LTCG 12.5% with ₹1.25 L exemption. The "Spouse on board" toggle splits joint income across two filers.
+**Methodology.** Year-by-year deterministic simulation for the four named strategies, plus a 500-run Monte Carlo with normal-distribution equity returns clamped at -55%. Tax module: FY 2025-26 New Regime with Section 87A rebate (incl. marginal relief), 4% cess, 10–25% surcharge, Section 80TTB (₹50K for 60+), and LTCG 12.5% with ₹1.25 L exemption. The "Spouse on board" toggle splits joint income across two filers. The optional "LTCG harvesting" toggle models annual tax-gain harvesting — sell-and-rebuy equity to crystallise gains up to the yearly exemption, stepping up cost basis at zero tax cost (long-term loss carry-forward is not modelled).
+
+The **Excel export** mirrors this entire engine as live workbook formulas — every strategy's projection, the FY 2025-26 tax stack, LTCG harvesting, and the SCSS locked-bucket accounting recompute inside Excel/Google Sheets when you edit the Inputs tab.
 
 **Limitations.** The model uses smooth or normal-distributed returns — real markets are fat-tailed and serially correlated. There are no idiosyncratic shocks (job loss, fraud, divorce, catastrophic uninsured medical events). Tax law may change.
 

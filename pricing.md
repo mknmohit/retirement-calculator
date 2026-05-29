@@ -5,7 +5,7 @@
 - **Product name:** Will My Money Last? — Free India Retirement Calculator
 - **Vendor:** Retirement Analysis Calculator (independent, open project)
 - **URL:** https://retirement.techdevix.com/
-- **Last updated:** 2026-05-28
+- **Last updated:** 2026-05-29
 - **Currency:** INR (₹) and USD ($) — both are 0
 - **Billing model:** None (truly free, not freemium)
 
@@ -43,6 +43,7 @@
 - FY 2025-26 Indian New Regime tax — Section 87A rebate, marginal relief, surcharge, 4% cess
 - Section 80TTB ₹50K senior-citizen interest deduction
 - LTCG 12.5% with ₹1.25 L annual exemption (Finance Act 2024)
+- Optional LTCG harvesting (annual cost-basis step-up via tax-free gain crystallisation, ₹2.5 L cap if spouse on board)
 - Spouse tax-splitting (each filer's own 87A and 80TTB)
 - Separate healthcare inflation rate (default 12%)
 - Lifestyle expense bands by age (65–75, 75+)
